@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import PacksAdmin from "@/pages/admin/PacksAdmin";
 import QuizList from "@/pages/admin/QuizList";
 import QuizBuilder from "@/pages/admin/QuizBuilder";
+import QuizBuilderPro from "@/pages/admin/QuizBuilderPro";
 import QuizDashboard from "@/pages/admin/QuizDashboard";
 import CompareQuizzes from "@/pages/admin/CompareQuizzes";
 import QuizRunner from "@/pages/public/QuizRunner";
@@ -33,6 +34,12 @@ function Router() {
       </Route>
       <Route path="/admin/quizzes/:id">
         <QuizBuilder />
+      </Route>
+      <Route path="/admin/builder/new">
+        <QuizBuilderPro isNew />
+      </Route>
+      <Route path="/admin/builder/:packId">
+        <QuizBuilderPro />
       </Route>
       <Route path="/admin/quiz/:id/dashboard" component={QuizDashboard} />
 

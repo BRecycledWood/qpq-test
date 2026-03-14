@@ -8,20 +8,52 @@ export type QuestionType =
   | "text"
   | "boolean"
   | "yesno"
-  | "select";
+  | "select"
+  | "yes_no"
+  | "true_false"
+  | "dropdown"
+  | "percent"
+  | "scale_1_5"
+  | "scale_1_10"
+  | "short_text"
+  | "long_text"
+  | "date";
 
 export interface QuestionOption {
   id: string;
   label: string;
   value?: string;
+  points?: number;
+  severity?: "info" | "warn" | "critical";
+}
+
+export interface BranchingRule {
+  id: string;
+  condition: "equals" | "not_equals" | "contains" | "greater_than" | "less_than" | "greater_equal" | "less_equal";
+  value: string;
+  targetQuestionId: string;
 }
 
 export interface Question {
   id: string;
   prompt: string;
   type: QuestionType;
+  key?: string;
+  helpText?: string;
+  category?: string;
   options?: QuestionOption[];
   required?: boolean;
+  branchingRules?: BranchingRule[];
+  defaultNextQuestionId?: string;
+}
+
+export interface CalculatedField {
+  id: string;
+  key: string;
+  label: string;
+  type: "number" | "boolean" | "text";
+  expression: string;
+  description?: string;
 }
 
 export interface Outcome {
@@ -92,9 +124,11 @@ export interface PricingRule {
 export interface PackDefinition {
   id?: string;
   name?: string;
+  description?: string;
   version?: number;
   outcomes: Outcome[];
   questions: Question[];
+  calculatedFields?: CalculatedField[];
   showIf?: ShowIfRule[];
   disqualifiers?: DisqualifierRule[];
   scoring?: ScoringRule[];

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, FileText, Settings, Users, BarChart3, LogOut, Plus } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, Users, BarChart3, LogOut, Plus, PenTool } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
     { href: "/admin/quizzes", icon: FileText, label: "Quizzes" },
+    { href: "/admin/builder/new", icon: PenTool, label: "Quiz Builder" },
     { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
     { href: "/admin/settings", icon: Settings, label: "Settings" },
   ];
@@ -31,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link key={item.href} href={item.href}>
               <a className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                location === item.href 
+                (location === item.href || (item.href !== "/admin" && location.startsWith(item.href)))
                   ? "bg-primary/10 text-primary" 
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}>
