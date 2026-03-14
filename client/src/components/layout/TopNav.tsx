@@ -6,6 +6,8 @@ export default function TopNav() {
 
   // Hide the global nav on quiz runner pages (quiz has its own nav)
   if (location.startsWith("/quiz/") || location.startsWith("/w/")) return null;
+  // Hide on admin pages (admin has its own sidebar)
+  if (location.startsWith("/admin")) return null;
   // Home page has its own header
   if (location === "/") return null;
 

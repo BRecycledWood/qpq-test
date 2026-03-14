@@ -32,6 +32,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import ConditionBuilder from "@/components/ConditionBuilder";
 import type {
   PackDefinition,
@@ -180,6 +187,7 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
   const [selectedQId, setSelectedQId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("questions");
   const [dirty, setDirty] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Selected question
   const selectedQ = useMemo(
@@ -237,9 +245,9 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
     })();
   }, [isNew, packId]);
 
-  // ─── Save ───────────────────────────────────────────────────────────────────
+  // ─── Save (draft only — no publish) ─────────────────────────────────────────
 
-  const handleSave = useCallback(async () => {
+  const handleSaveDraft = useCallback(async () => {
     setSaving(true);
     try {
       let targetPackId = packMeta?.id;
@@ -280,8 +288,8 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
         });
       }
 
-      // Create new version
-      const versionRes = await apiFetch<{ version: PackVersionRecord }>(
+      // Create new version (saved as draft)
+      await apiFetch<{ version: PackVersionRecord }>(
         `/api/admin/packs/${targetPackId}/versions`,
         {
           method: "POST",
@@ -289,13 +297,8 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
         },
       );
 
-      // Auto-publish
-      await apiFetch(`/api/admin/packs/${targetPackId}/publish/${versionRes.version.id}`, {
-        method: "POST",
-      });
-
       setDirty(false);
-      toast({ title: "Saved & Published ✓", description: `Version ${versionRes.version.version}` });
+      toast({ title: "Draft saved ✓", description: "Your quiz has been saved. Publish it to make it live." });
 
       // Navigate to edit URL if was new
       if (isNew) {
@@ -308,6 +311,91 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
       setSaving(false);
     }
   }, [def, packMeta, workspaces, isNew, setLocation, toast]);
+
+  // ─── Publish (save + make live) ────────────────────────────────────────────
+
+  const handlePublish = useCallback(async () => {
+    setSaving(true);
+    try {
+      let targetPackId = packMeta?.id;
+
+      // Create pack if new
+      if (!targetPackId) {
+        const wsId = workspaces[0]?.id;
+        if (!wsId) throw new Error("No workspace found. Create one first.");
+
+        const slug = (def.name ?? "quiz")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+
+        const packRes = await apiFetch<{ pack: PackMeta }>(
+          `/api/admin/workspaces/${wsId}/packs`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              name: def.name ?? "New Quiz",
+              slug: slug || `quiz-${nanoid(6)}`,
+              isPaid: def.pricing?.isPaid ?? false,
+              stripePriceId: def.pricing?.stripePriceId ?? null,
+            }),
+          },
+        );
+        targetPackId = packRes.pack.id;
+        setPackMeta(packRes.pack);
+      } else {
+        await apiFetch(`/api/admin/packs/${targetPackId}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            name: def.name,
+            isPaid: def.pricing?.isPaid ?? false,
+            stripePriceId: def.pricing?.stripePriceId ?? null,
+          }),
+        });
+      }
+
+      // Create new version
+      const versionRes = await apiFetch<{ version: PackVersionRecord }>(
+        `/api/admin/packs/${targetPackId}/versions`,
+        {
+          method: "POST",
+          body: JSON.stringify({ definition: def }),
+        },
+      );
+
+      // Publish
+      await apiFetch(`/api/admin/packs/${targetPackId}/publish/${versionRes.version.id}`, {
+        method: "POST",
+      });
+
+      setDirty(false);
+      setPackMeta((prev) =>
+        prev ? { ...prev, publishedVersionId: versionRes.version.id } : prev,
+      );
+      toast({ title: "Published ✓", description: `Version ${versionRes.version.version} is now live!` });
+
+      if (isNew) {
+        setLocation(`/admin/builder/${targetPackId}`);
+      }
+    } catch (err) {
+      console.error("Publish error:", err);
+      toast({ title: "Publish failed", description: String(err), variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }, [def, packMeta, workspaces, isNew, setLocation, toast]);
+
+  // ─── Publish gate (freemium paywall) ───────────────────────────────────────
+
+  const isPro = false; // TODO: wire to real subscription status
+
+  const handlePublishClick = useCallback(() => {
+    if (isPro) {
+      handlePublish();
+    } else {
+      setShowPaywall(true);
+    }
+  }, [isPro, handlePublish]);
 
   // ─── Definition Updaters ────────────────────────────────────────────────────
 
@@ -696,15 +784,18 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
               <Eye className="mr-2 h-4 w-4" /> Preview
             </Button>
           )}
-          <Button onClick={handleSave} disabled={saving}>
+          <Button variant="outline" onClick={handleSaveDraft} disabled={saving}>
+            <Save className="mr-2 h-4 w-4" /> Save Draft
+          </Button>
+          <Button onClick={handlePublishClick} disabled={saving}>
             {saving ? (
               <span className="flex items-center gap-2">
                 <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Saving…
+                Publishing…
               </span>
             ) : (
               <>
-                <Rocket className="mr-2 h-4 w-4" /> Save & Publish
+                <Rocket className="mr-2 h-4 w-4" /> Publish
               </>
             )}
           </Button>
@@ -1788,13 +1879,81 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
             <Button variant="outline" onClick={() => window.location.reload()}>
               Discard
             </Button>
-            <Button onClick={handleSave} disabled={saving}>
+            <Button variant="outline" onClick={handleSaveDraft} disabled={saving}>
               <Save className="mr-2 h-4 w-4" />
-              Save & Publish
+              Save Draft
+            </Button>
+            <Button onClick={handlePublishClick} disabled={saving}>
+              <Rocket className="mr-2 h-4 w-4" />
+              Publish
             </Button>
           </div>
         </div>
       )}
+
+      {/* ─── Publish Paywall Modal ─────────────────────────────────────── */}
+      <Dialog open={showPaywall} onOpenChange={setShowPaywall}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-center">Ready to Go Live?</DialogTitle>
+            <DialogDescription className="text-center">
+              Upgrade to Pro to publish your quiz and start collecting leads.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Free vs Pro comparison */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl border p-4 bg-muted/30">
+                <p className="text-sm font-semibold text-muted-foreground mb-3">Free</p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Create quizzes</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Visual editor</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Branching logic</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Scoring engine</li>
+                  <li className="flex items-center gap-2"><X className="h-4 w-4 text-red-400" /> Publish & share</li>
+                  <li className="flex items-center gap-2"><X className="h-4 w-4 text-red-400" /> Lead capture</li>
+                  <li className="flex items-center gap-2"><X className="h-4 w-4 text-red-400" /> Analytics</li>
+                </ul>
+              </div>
+              <div className="rounded-xl border-2 border-primary p-4 bg-primary/5 relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-primary text-primary-foreground text-xs px-3">Recommended</Badge>
+                </div>
+                <p className="text-sm font-semibold text-primary mb-1">Pro</p>
+                <p className="text-2xl font-bold mb-3">$39<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Everything in Free</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Unlimited publishing</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Lead capture & email</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Full analytics</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> PDF reports</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Custom branding</li>
+                  <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-500" /> Priority support</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                className="w-full h-12 text-base"
+                onClick={() => {
+                  setShowPaywall(false);
+                  setLocation("/pricing");
+                }}
+              >
+                <Rocket className="mr-2 h-5 w-5" />
+                Upgrade to Pro
+              </Button>
+              <Button
+                variant="ghost"
+                className="text-muted-foreground"
+                onClick={() => setShowPaywall(false)}
+              >
+                Maybe later — keep editing
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
