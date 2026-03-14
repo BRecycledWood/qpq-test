@@ -9,6 +9,8 @@ import Dashboard from "@/pages/admin/Dashboard";
 import QuizList from "@/pages/admin/QuizList";
 import QuizBuilderPro from "@/pages/admin/QuizBuilderPro";
 import QuizDashboard from "@/pages/admin/QuizDashboard";
+import Analytics from "@/pages/admin/Analytics";
+import Settings from "@/pages/admin/Settings";
 import PacksAdmin from "@/pages/admin/PacksAdmin";
 import QuizRunner from "@/pages/public/QuizRunner";
 import PackRunner from "@/pages/public/PackRunner";
@@ -34,6 +36,8 @@ function Router() {
         <QuizBuilderPro />
       </Route>
       <Route path="/admin/quiz/:id/dashboard" component={QuizDashboard} />
+      <Route path="/admin/analytics" component={Analytics} />
+      <Route path="/admin/settings" component={Settings} />
 
       {/* Legacy — dev reference only */}
       <Route path="/admin/packs-legacy" component={PacksAdmin} />
