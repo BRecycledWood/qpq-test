@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRoute, Link } from "wouter";
 import { storage } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Lock, Download, ChevronRight, Clock, HelpCircle, ArrowRight, AlertOctagon, CalendarIcon } from "lucide-react";
+import { CheckCircle2, Lock, Download, ChevronRight, ChevronLeft, Clock, HelpCircle, ArrowRight, AlertOctagon, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Quiz, Question, Submission, Outcome } from "@/lib/mock-data";
@@ -31,6 +31,7 @@ export default function QuizRunner() {
   // UI State
   const [status, setStatus] = useState<'landing' | 'running' | 'paywall' | 'results' | 'knockout'>('landing');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [questionHistory, setQuestionHistory] = useState<string[]>([]);
 
   useEffect(() => {
     const q = storage.getQuizzes().find(q => q.slug === slug);
@@ -174,8 +175,19 @@ export default function QuizRunner() {
     }
   };
 
+  const handleBack = useCallback(() => {
+    if (questionHistory.length > 0) {
+      const prev = questionHistory[questionHistory.length - 1];
+      setQuestionHistory(h => h.slice(0, -1));
+      setCurrentQId(prev);
+    }
+  }, [questionHistory]);
+
   const handleNext = () => {
     if (!currentQ) return;
+
+    // Track history for back navigation
+    setQuestionHistory(h => [...h, currentQ.id]);
 
     // Check Branching
     let nextId = currentQ.defaultNextQuestionId === 'finish' ? null : (currentQ.defaultNextQuestionId || 'next');
@@ -212,6 +224,33 @@ export default function QuizRunner() {
     }
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (status !== 'running' || !currentQ) return;
+
+    const handler = (e: KeyboardEvent) => {
+      // Number keys 1-9 for selecting options
+      if (['single', 'yes_no', 'true_false'].includes(currentQ.type) && currentQ.options) {
+        const num = parseInt(e.key);
+        if (num >= 1 && num <= currentQ.options.length) {
+          setAnswers(p => ({ ...p, [currentQ.id]: String(currentQ.options![num - 1].value) }));
+        }
+      }
+      // Yes/No with 1/2
+      if (['yes_no', 'true_false'].includes(currentQ.type)) {
+        if (e.key === '1') setAnswers(p => ({ ...p, [currentQ.id]: true }));
+        if (e.key === '2') setAnswers(p => ({ ...p, [currentQ.id]: false }));
+      }
+      // Enter to continue
+      if (e.key === 'Enter' && answers[currentQ.id] !== undefined && answers[currentQ.id] !== '') {
+        handleNext();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [status, currentQ, answers]);
+
   // --- Renderers ---
 
   const renderInput = () => {
@@ -240,10 +279,21 @@ export default function QuizRunner() {
         return (
           <RadioGroup value={val} onValueChange={v => setAnswers(p => ({...p, [currentQ.id]: v}))}>
             <div className="space-y-3">
-              {currentQ.options?.map(opt => (
-                <div key={opt.id} className={cn("flex items-center space-x-2 border p-4 rounded-lg cursor-pointer hover:bg-muted/50", val === opt.value && "border-primary bg-primary/5")}>
+              {currentQ.options?.map((opt, idx) => (
+                <div key={opt.id} className={cn(
+                  "flex items-center space-x-3 border-2 p-4 rounded-xl cursor-pointer transition-all",
+                  val === String(opt.value)
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover:border-primary/30 hover:bg-muted/30"
+                )}>
                   <RadioGroupItem value={String(opt.value)} id={opt.id} />
-                  <Label htmlFor={opt.id} className="flex-1 cursor-pointer">{opt.label}</Label>
+                  <Label htmlFor={opt.id} className="flex-1 cursor-pointer font-medium">{opt.label}</Label>
+                  {val === String(opt.value) && opt.points !== undefined && (
+                    <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                      +{opt.points} pts
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground/50 font-mono w-4">{idx + 1}</span>
                 </div>
               ))}
             </div>
@@ -363,34 +413,89 @@ export default function QuizRunner() {
   }
 
   if (status === 'running' && currentQ) {
+    const currentIdx = quiz.questions.findIndex(q => q.id === currentQ.id);
+    const isLastQuestion = currentIdx === quiz.questions.length - 1;
+    const canGoBack = questionHistory.length > 0;
+    const hasAnswer = answers[currentQ.id] !== undefined && answers[currentQ.id] !== "";
+    const showKeyboardHint = ['single', 'yes_no', 'true_false'].includes(currentQ.type);
+
     return (
-      <div className="min-h-screen flex flex-col bg-muted/10">
-        <div className="h-2 bg-muted w-full"><motion.div className="h-full bg-primary" initial={{width: 0}} animate={{width: `${progress}%`}} /></div>
+      <div className="min-h-screen flex flex-col bg-background">
+        {/* Progress bar */}
+        <div className="h-1.5 bg-muted w-full">
+          <motion.div 
+            className="h-full bg-primary" 
+            initial={{ width: 0 }} 
+            animate={{ width: `${progress}%` }} 
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          />
+        </div>
+
+        {/* Question counter */}
+        <div className="flex justify-between items-center px-6 py-3 text-sm text-muted-foreground max-w-2xl mx-auto w-full">
+          <span>Question {currentIdx + 1} of {quiz.questions.length}</span>
+          <span className="font-mono">{Math.round(progress)}%</span>
+        </div>
+
+        {/* Question card */}
         <div className="flex-1 flex flex-col items-center justify-center p-6 max-w-2xl mx-auto w-full">
           <AnimatePresence mode="wait">
             <motion.div 
               key={currentQ.id}
-              initial={{opacity: 0, x: 20}} animate={{opacity: 1, x: 0}} exit={{opacity: 0, x: -20}}
-              className="w-full space-y-8"
+              initial={{ opacity: 0, x: 30 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.25 }}
+              className="w-full"
             >
-              <div className="space-y-2">
-                {currentQ.category && <span className="text-xs font-bold text-primary tracking-widest uppercase">{currentQ.category}</span>}
-                <h2 className="text-3xl font-medium">{currentQ.text}</h2>
-                {currentQ.helpText && <p className="text-muted-foreground">{currentQ.helpText}</p>}
-              </div>
-              
-              <div className="py-4">
-                {renderInput()}
-              </div>
+              <div className="bg-card rounded-2xl border shadow-sm p-8 space-y-6">
+                {currentQ.category && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-widest uppercase">
+                    ⚡ {currentQ.category}
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold">{currentQ.text}</h2>
+                  {currentQ.helpText && <p className="text-muted-foreground">{currentQ.helpText}</p>}
+                </div>
+                
+                <div className="py-2">
+                  {renderInput()}
+                </div>
 
-              <div className="flex justify-end pt-8">
-                <Button size="lg" className="px-8" onClick={handleNext} disabled={currentQ.required && (answers[currentQ.id] === undefined || answers[currentQ.id] === "")}>
-                  Next <ChevronRight className="ml-2 w-4 h-4"/>
-                </Button>
+                {/* Navigation */}
+                <div className="flex items-center justify-between pt-4">
+                  {canGoBack ? (
+                    <button 
+                      onClick={handleBack} 
+                      className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" /> Back
+                    </button>
+                  ) : (
+                    <div />
+                  )}
+                  <Button 
+                    size="lg" 
+                    className="px-8 rounded-xl" 
+                    onClick={handleNext} 
+                    disabled={currentQ.required && !hasAnswer}
+                  >
+                    {isLastQuestion ? "See Results" : "Continue"} <ArrowRight className="ml-2 w-4 h-4"/>
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {/* Keyboard hint */}
+        {showKeyboardHint && (
+          <div className="text-center py-4 text-xs text-muted-foreground/60">
+            Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-muted-foreground font-mono mx-0.5">1</kbd> – <kbd className="px-1.5 py-0.5 bg-muted rounded text-muted-foreground font-mono mx-0.5">{currentQ.options?.length || 4}</kbd> to select  •  <kbd className="px-1.5 py-0.5 bg-muted rounded text-muted-foreground font-mono mx-0.5">Enter ↵</kbd> to continue
+          </div>
+        )}
       </div>
     );
   }

@@ -13,6 +13,8 @@ import CompareQuizzes from "@/pages/admin/CompareQuizzes";
 import QuizRunner from "@/pages/public/QuizRunner";
 import PackRunner from "@/pages/public/PackRunner";
 import Demo from "@/pages/public/Demo";
+import Pricing from "@/pages/public/Pricing";
+import Templates from "@/pages/public/Templates";
 import TopNav from "@/components/layout/TopNav";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import Terms from "@/pages/legal/Terms";
@@ -36,6 +38,8 @@ function Router() {
 
       {/* Public Routes */}
       <Route path="/demo" component={Demo} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/templates" component={Templates} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={Terms} />
       <Route path="/w/:workspaceSlug/:packSlug" component={PackRunner} />

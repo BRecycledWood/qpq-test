@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { CheckCircle2, ArrowRight, Zap, CreditCard, FileText, Users, ShieldCheck, TrendingUp, GitBranch, Calculator } from "lucide-react";
+import { CheckCircle2, ArrowRight, Zap, CreditCard, FileText, Users, ShieldCheck, TrendingUp, GitBranch, Calculator, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import HeroProductMockup from "@/components/HeroProductMockup";
 
 const DEMO_MAILTO = "mailto:hello@howstud.io?subject=Custom%20Demo%20Request&body=Hi%2C%20I%27d%20like%20to%20request%20a%20custom%20demo.%0A%0ACompany%3A%20%0AUse%20case%3A%20%0AIndustry%3A%20";
 
@@ -41,14 +42,16 @@ export default function Home() {
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>
           <a href="#use-cases" className="hover:text-foreground transition-colors">Use Cases</a>
+          <Link href="/templates" className="hover:text-foreground transition-colors">Templates</Link>
+          <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
           <Link href="/demo" className="hover:text-foreground transition-colors">Demo</Link>
         </nav>
         <div className="flex items-center gap-4">
           <Link href="/admin">
-            <Button variant="ghost" size="sm">Admin</Button>
+            <Button variant="ghost" size="sm">Sign In</Button>
           </Link>
           <Link href="/demo">
-            <Button size="sm">Get Started</Button>
+            <Button size="sm">Get Started →</Button>
           </Link>
         </div>
       </header>
@@ -83,34 +86,65 @@ export default function Home() {
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </Link>
-                <Link href="/admin">
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-base w-full sm:w-auto">
-                    Admin
-                  </Button>
-                </Link>
+                <Button size="lg" variant="outline" className="h-14 px-8 text-base w-full sm:w-auto">
+                  <Play className="mr-2 w-4 h-4" />
+                  Watch 2-min Demo
+                </Button>
               </div>
 
               <div className="flex items-center gap-6 pt-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>No credit card required</span></div>
-                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Free to start</span></div>
+                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /><span>No credit card required</span></div>
+                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /><span>Free to start</span></div>
+                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /><span>5-min setup</span></div>
               </div>
             </div>
 
             <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border bg-background">
-                <img src="/dashboard-hero.png" alt="Dashboard Preview" className="w-full h-auto object-cover" />
-                <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-2xl" />
-              </div>
-              <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-lg shadow-xl border hidden md:block">
+              <HeroProductMockup />
+              <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-lg shadow-xl border hidden md:block animate-in slide-in-from-bottom-4 fade-in duration-700 delay-500">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                    <CreditCard className="w-5 h-5" />
+                    <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-sm font-medium">New Lead Captured</p>
                     <p className="text-xs text-muted-foreground">PDF report emailed ✓</p>
                   </div>
                 </div>
+              </div>
+              <div className="absolute -top-4 -right-4 bg-card p-3 rounded-lg shadow-xl border hidden md:block animate-in slide-in-from-top-4 fade-in duration-700 delay-700">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">74%</div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Assessment Score</div>
+                  <div className="text-[10px] font-bold text-emerald-600 bg-emerald-50 rounded px-2 py-0.5 mt-1">High Potential</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Social Proof Bar */}
+        <section className="py-10 bg-muted/30 border-y">
+          <div className="max-w-5xl mx-auto px-6 lg:px-12">
+            <p className="text-xs text-center text-muted-foreground uppercase tracking-wider font-semibold mb-6">
+              Trusted by agencies and SaaS companies for quiz-based lead generation
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <div>
+                <div className="text-3xl font-bold font-display text-foreground">30%+</div>
+                <div className="text-sm text-muted-foreground">Average conversion rate</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold font-display text-foreground">5 min</div>
+                <div className="text-sm text-muted-foreground">Average setup time</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold font-display text-foreground">100%</div>
+                <div className="text-sm text-muted-foreground">White-label ready</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold font-display text-foreground">$0</div>
+                <div className="text-sm text-muted-foreground">To get started</div>
               </div>
             </div>
           </div>
@@ -259,7 +293,7 @@ export default function Home() {
           </div>
         </div>
         <div className="text-center text-sm text-muted-foreground pt-8 border-t border-border">
-          <p>&copy; 2026 Quiz Pro Quo. Built for HOWstud.io.</p>
+          <p>&copy; 2026 Quiz Pro Quo. Built by <a href="https://howstud.io" className="hover:text-foreground transition-colors">HOWstud.io</a></p>
         </div>
       </footer>
     </div>
