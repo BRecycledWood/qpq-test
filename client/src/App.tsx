@@ -5,14 +5,16 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
-import PacksAdmin from "@/pages/admin/PacksAdmin";
+import Dashboard from "@/pages/admin/Dashboard";
 import QuizList from "@/pages/admin/QuizList";
-import QuizBuilder from "@/pages/admin/QuizBuilder";
+import QuizBuilderPro from "@/pages/admin/QuizBuilderPro";
 import QuizDashboard from "@/pages/admin/QuizDashboard";
-import CompareQuizzes from "@/pages/admin/CompareQuizzes";
+import PacksAdmin from "@/pages/admin/PacksAdmin";
 import QuizRunner from "@/pages/public/QuizRunner";
 import PackRunner from "@/pages/public/PackRunner";
 import Demo from "@/pages/public/Demo";
+import Pricing from "@/pages/public/Pricing";
+import Templates from "@/pages/public/Templates";
 import TopNav from "@/components/layout/TopNav";
 import PrivacyPolicy from "@/pages/legal/PrivacyPolicy";
 import Terms from "@/pages/legal/Terms";
@@ -23,19 +25,23 @@ function Router() {
       <Route path="/" component={Home} />
 
       {/* Admin Routes */}
-      <Route path="/admin" component={PacksAdmin} />
+      <Route path="/admin" component={Dashboard} />
       <Route path="/admin/quizzes" component={QuizList} />
-      <Route path="/admin/quizzes/compare" component={CompareQuizzes} />
-      <Route path="/admin/quizzes/new">
-        <QuizBuilder isNew />
+      <Route path="/admin/builder/new">
+        <QuizBuilderPro isNew />
       </Route>
-      <Route path="/admin/quizzes/:id">
-        <QuizBuilder />
+      <Route path="/admin/builder/:packId">
+        <QuizBuilderPro />
       </Route>
       <Route path="/admin/quiz/:id/dashboard" component={QuizDashboard} />
 
+      {/* Legacy — dev reference only */}
+      <Route path="/admin/packs-legacy" component={PacksAdmin} />
+
       {/* Public Routes */}
       <Route path="/demo" component={Demo} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/templates" component={Templates} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/terms" component={Terms} />
       <Route path="/w/:workspaceSlug/:packSlug" component={PackRunner} />

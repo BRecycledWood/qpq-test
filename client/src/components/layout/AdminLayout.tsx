@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, FileText, Settings, Users, BarChart3, LogOut, Plus } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, BarChart3, LogOut, PenTool } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -7,23 +7,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [location] = useLocation();
 
   const navItems = [
-    { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/admin/quizzes", icon: FileText, label: "Quizzes" },
+    { href: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
+    { href: "/admin/quizzes", icon: FileText, label: "My Quizzes" },
+    { href: "/admin/builder/new", icon: PenTool, label: "Create Quiz" },
     { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
     { href: "/admin/settings", icon: Settings, label: "Settings" },
   ];
+
+  const isActive = (item: typeof navItems[0]) => {
+    if (item.exact) return location === item.href;
+    return location === item.href || location.startsWith(item.href);
+  };
 
   return (
     <div className="min-h-screen bg-muted/30 flex">
       {/* Sidebar */}
       <aside className="w-64 bg-background border-r border-sidebar-border hidden md:flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-2 font-bold text-xl text-primary">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-              Q
-            </div>
-            QuizProQuo
-          </div>
+          <Link href="/admin">
+            <a className="flex items-center gap-2 font-bold text-xl text-primary">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+                Q
+              </div>
+              QuizProQuo
+            </a>
+          </Link>
         </div>
 
         <div className="flex-1 py-6 px-4 space-y-1">
@@ -31,7 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link key={item.href} href={item.href}>
               <a className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                location === item.href 
+                isActive(item)
                   ? "bg-primary/10 text-primary" 
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}>
@@ -52,18 +60,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <p className="text-xs text-muted-foreground truncate">Org Admin</p>
             </div>
           </div>
-          <Button variant="outline" className="w-full justify-start gap-2" size="sm">
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </Button>
+          <Link href="/">
+            <Button variant="outline" className="w-full justify-start gap-2" size="sm">
+              <LogOut className="w-4 h-4" />
+              Back to Site
+            </Button>
+          </Link>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
         <header className="h-16 bg-background border-b px-6 flex items-center justify-between md:hidden">
-          <span className="font-bold">QuizProQuo</span>
-          {/* Mobile menu trigger would go here */}
+          <Link href="/admin">
+            <span className="font-bold text-primary">QuizProQuo</span>
+          </Link>
         </header>
         
         <div className="flex-1 overflow-y-auto p-6 md:p-10">

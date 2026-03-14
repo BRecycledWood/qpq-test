@@ -3,12 +3,13 @@ import { Link, useLocation } from "wouter";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from "recharts";
-import { Users, CheckCircle, DollarSign, TrendingUp, ArrowUpRight } from "lucide-react";
+import { Users, CheckCircle, DollarSign, TrendingUp, Plus, ArrowUpRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const CUSTOM_DEMO_MAILTO = "mailto:hello@howstud.io?subject=Custom%20Demo%20Request&body=Hi%2C%20I%27d%20like%20to%20request%20a%20custom%20demo.%0A%0ACompany%3A%20%0AUse%20case%3A%20%0AIndustry%3A%20";
-
+/* ------------------------------------------------------------------ */
+/*  Admin key helper                                                   */
+/* ------------------------------------------------------------------ */
 function getAdminKey() {
   return typeof window !== "undefined" ? localStorage.getItem("adminKey") ?? "" : "";
 }
@@ -21,6 +22,9 @@ function adminFetch(url: string) {
   });
 }
 
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
 type WorkspaceStats = {
   totalSubmissions: number;
   completedSubmissions: number;
@@ -53,7 +57,55 @@ type Submission = {
 
 type Workspace = { id: string; name: string; slug: string };
 
-const PIE_COLORS = ["#16a34a", "#d97706", "#dc2626", "#6366f1", "#0ea5e9"];
+/* ------------------------------------------------------------------ */
+/*  Demo / seed data (used when API returns empty)                     */
+/* ------------------------------------------------------------------ */
+function generateDemoChart(): { date: string; count: number }[] {
+  const today = new Date();
+  return Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - 29 + i);
+    const base = 3 + Math.floor(i * 0.35);
+    return {
+      date: d.toISOString().slice(0, 10),
+      count: base + Math.floor(Math.random() * 5),
+    };
+  });
+}
+
+const DEMO_STATS: WorkspaceStats = {
+  totalSubmissions: 312,
+  completedSubmissions: 247,
+  totalRevenue: 4_235,
+  avgCompletionRate: 68,
+  submissionsByDay: generateDemoChart(),
+  outcomeBreakdown: [
+    { outcomeId: "d1", label: "Industry Leader", count: 82 },
+    { outcomeId: "d2", label: "On Track", count: 97 },
+    { outcomeId: "d3", label: "Needs Improvement", count: 44 },
+    { outcomeId: "d4", label: "At Risk", count: 24 },
+  ],
+  quizBreakdown: [
+    { packId: "demo-1", packName: "Marketing Readiness Assessment", packSlug: "marketing-readiness", totalSubmissions: 142, completedSubmissions: 108, completionRate: 76, totalRevenue: 2_156, lastSubmissionAt: new Date().toISOString() },
+    { packId: "demo-2", packName: "Financial Health Check", packSlug: "financial-health", totalSubmissions: 89, completedSubmissions: 71, completionRate: 80, totalRevenue: 1_421, lastSubmissionAt: new Date(Date.now() - 86400000).toISOString() },
+    { packId: "demo-3", packName: "Sales Pipeline Diagnostic", packSlug: "sales-pipeline", totalSubmissions: 54, completedSubmissions: 45, completionRate: 83, totalRevenue: 490, lastSubmissionAt: new Date(Date.now() - 172800000).toISOString() },
+    { packId: "demo-4", packName: "Leadership Style Quiz", packSlug: "leadership-style", totalSubmissions: 27, completedSubmissions: 23, completionRate: 85, totalRevenue: 168, lastSubmissionAt: new Date(Date.now() - 345600000).toISOString() },
+  ],
+};
+
+const DEMO_LEADS: Submission[] = [
+  { id: "s1", email: "sarah.chen@acme.io", firstName: "Sarah", packId: "demo-1", outcomeLabel: "Industry Leader", completedAt: new Date().toISOString(), createdAt: new Date().toISOString(), paid: true },
+  { id: "s2", email: "james.wilson@startup.co", firstName: "James", packId: "demo-2", outcomeLabel: "On Track", completedAt: new Date(Date.now() - 3600000).toISOString(), createdAt: new Date(Date.now() - 3600000).toISOString(), paid: true },
+  { id: "s3", email: "maria.garcia@enterprise.com", firstName: "Maria", packId: "demo-1", outcomeLabel: "Industry Leader", completedAt: new Date(Date.now() - 7200000).toISOString(), createdAt: new Date(Date.now() - 7200000).toISOString(), paid: false },
+  { id: "s4", email: "alex.kumar@agency.co", firstName: "Alex", packId: "demo-3", outcomeLabel: "Needs Improvement", completedAt: new Date(Date.now() - 14400000).toISOString(), createdAt: new Date(Date.now() - 14400000).toISOString(), paid: true },
+  { id: "s5", email: "rachel.lee@consulting.io", firstName: "Rachel", packId: "demo-2", outcomeLabel: "On Track", completedAt: new Date(Date.now() - 28800000).toISOString(), createdAt: new Date(Date.now() - 28800000).toISOString(), paid: false },
+  { id: "s6", email: "david.patel@growth.co", firstName: "David", packId: "demo-4", outcomeLabel: "At Risk", completedAt: new Date(Date.now() - 43200000).toISOString(), createdAt: new Date(Date.now() - 43200000).toISOString(), paid: true },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+const PIE_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#0ea5e9"];
 
 function completionBadge(rate: number) {
   if (rate >= 60) return <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">{rate}%</Badge>;
@@ -61,16 +113,20 @@ function completionBadge(rate: number) {
   return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{rate}%</Badge>;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Dashboard                                                          */
+/* ------------------------------------------------------------------ */
 export default function Dashboard() {
   const [, setLocation] = useLocation();
 
+  /* ---- API queries ---- */
   const { data: workspacesData } = useQuery<{ workspaces: Workspace[] }>({
     queryKey: ["/api/admin/workspaces"],
     queryFn: () => adminFetch("/api/admin/workspaces"),
   });
   const workspaceId = workspacesData?.workspaces?.[0]?.id ?? "";
 
-  const { data: stats, isLoading: statsLoading } = useQuery<WorkspaceStats>({
+  const { data: liveStats, isLoading: statsLoading } = useQuery<WorkspaceStats>({
     queryKey: ["stats", workspaceId],
     queryFn: () => adminFetch(`/api/admin/workspaces/${workspaceId}/stats`),
     enabled: Boolean(workspaceId),
@@ -82,25 +138,40 @@ export default function Dashboard() {
     enabled: Boolean(workspaceId),
   });
 
-  // Build pack name map from stats
+  /* ---- Determine if we should show demo data ---- */
+  const hasRealData = liveStats && (liveStats.totalSubmissions > 0 || (liveStats.quizBreakdown?.length ?? 0) > 0);
+  const isDemo = !hasRealData;
+  const stats = hasRealData ? liveStats : DEMO_STATS;
+  const submissions = (subsData?.submissions?.length ?? 0) > 0 ? subsData!.submissions : (isDemo ? DEMO_LEADS : []);
+
+  /* ---- Pack name map ---- */
   const packNameMap: Record<string, string> = {};
   stats?.quizBreakdown?.forEach((q) => { packNameMap[q.packId] = q.packName; });
 
   return (
     <AdminLayout>
+      {/* Demo banner */}
+      {isDemo && !statsLoading && (
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+          <Info className="h-4 w-4 shrink-0" />
+          <span>
+            <strong>Demo Data</strong> — This is sample data to show you how your dashboard will look. Create and publish a quiz to see real analytics!
+          </span>
+        </div>
+      )}
+
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Executive Dashboard</h1>
-          <p className="text-muted-foreground">Real-time overview of your assessment performance.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Your assessment performance at a glance.</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/admin/quizzes/compare">
-            <Button variant="outline">Compare Quizzes</Button>
-          </Link>
-          <Link href="/admin/quizzes/new">
-            <Button>+ New Quiz</Button>
-          </Link>
-        </div>
+        <Link href="/admin/builder/new">
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create Quiz
+          </Button>
+        </Link>
       </div>
 
       {/* KPI Row */}
@@ -125,7 +196,7 @@ export default function Dashboard() {
             <div className="text-2xl font-bold">
               {stats ? `$${stats.totalRevenue.toLocaleString()}` : "—"}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Paid submissions</p>
+            <p className="text-xs text-muted-foreground mt-1">From paid assessments</p>
           </CardContent>
         </Card>
 
@@ -230,9 +301,16 @@ export default function Dashboard() {
 
       {/* Quiz Performance Table */}
       <Card className="mb-8 shadow-sm">
-        <CardHeader>
-          <CardTitle>Quiz Performance</CardTitle>
-          <CardDescription>Click a row to view detailed analytics.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Quiz Performance</CardTitle>
+            <CardDescription>Click a row to view detailed analytics.</CardDescription>
+          </div>
+          <Link href="/admin/quizzes">
+            <Button variant="outline" size="sm" className="gap-1">
+              View All <ArrowUpRight className="h-3 w-3" />
+            </Button>
+          </Link>
         </CardHeader>
         <CardContent>
           {stats?.quizBreakdown && stats.quizBreakdown.length > 0 ? (
@@ -241,8 +319,8 @@ export default function Dashboard() {
                 <thead>
                   <tr className="border-b text-muted-foreground text-left">
                     <th className="pb-3 pr-4 font-medium">Quiz Name</th>
-                    <th className="pb-3 pr-4 font-medium text-right">Submissions</th>
-                    <th className="pb-3 pr-4 font-medium text-right">Completion Rate</th>
+                    <th className="pb-3 pr-4 font-medium text-right">Leads</th>
+                    <th className="pb-3 pr-4 font-medium text-right">Completion</th>
                     <th className="pb-3 pr-4 font-medium text-right">Revenue</th>
                     <th className="pb-3 font-medium text-right">Last Activity</th>
                   </tr>
@@ -252,10 +330,10 @@ export default function Dashboard() {
                     <tr
                       key={quiz.packId}
                       className="border-b last:border-0 hover:bg-muted/40 cursor-pointer transition-colors"
-                      onClick={() => setLocation(`/admin/quiz/${quiz.packId}/dashboard`)}
+                      onClick={() => !isDemo && setLocation(`/admin/quiz/${quiz.packId}/dashboard`)}
                     >
                       <td className="py-3 pr-4 font-medium">{quiz.packName}</td>
-                      <td className="py-3 pr-4 text-right">{quiz.totalSubmissions}</td>
+                      <td className="py-3 pr-4 text-right">{quiz.completedSubmissions}</td>
                       <td className="py-3 pr-4 text-right">{completionBadge(quiz.completionRate)}</td>
                       <td className="py-3 pr-4 text-right">${quiz.totalRevenue.toLocaleString()}</td>
                       <td className="py-3 text-right text-muted-foreground">
@@ -268,13 +346,13 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="text-center py-10 text-muted-foreground text-sm">
-              No quizzes yet. Create your first quiz in the Pack Admin.
+              No quizzes yet. <Link href="/admin/builder/new" className="text-primary hover:underline">Create your first quiz</Link>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Recent Submissions Feed */}
+      {/* Recent Leads */}
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Recent Leads</CardTitle>
@@ -282,14 +360,14 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {subsData?.submissions && subsData.submissions.length > 0 ? (
-              subsData.submissions.map((sub) => (
+            {submissions.length > 0 ? (
+              submissions.map((sub) => (
                 <div key={sub.id} className="flex items-center pb-3 border-b last:border-0 last:pb-0">
-                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground shrink-0">
-                    {(sub.email ?? "A").charAt(0).toUpperCase()}
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                    {(sub.firstName ?? sub.email ?? "A").charAt(0).toUpperCase()}
                   </div>
                   <div className="ml-3 flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{sub.email ?? "Anonymous"}</p>
+                    <p className="text-sm font-medium truncate">{sub.firstName ?? sub.email ?? "Anonymous"}</p>
                     <p className="text-xs text-muted-foreground">
                       {packNameMap[sub.packId] ?? sub.packId} · {new Date(sub.createdAt).toLocaleDateString()}
                     </p>
