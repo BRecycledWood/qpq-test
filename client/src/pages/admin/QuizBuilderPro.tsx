@@ -185,7 +185,7 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [def, setDef] = useState<PackDefinition>(emptyDefinition());
   const [selectedQId, setSelectedQId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("questions");
+  const [activeTab, setActiveTab] = useState("details");
   const [dirty, setDirty] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
 
@@ -237,8 +237,8 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
           }
         }
       } catch (err) {
-        console.error("Load error:", err);
-        toast({ title: "Error loading data", description: String(err), variant: "destructive" });
+        // Silently start with empty builder — no scary errors on load
+        console.warn("Builder load:", err);
       } finally {
         setLoading(false);
       }
@@ -805,8 +805,8 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
       {/* ─── Tabs ─────────────────────────────────────────────────────────── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="w-full justify-start h-12 p-1 bg-muted/50">
-          <TabsTrigger value="settings" className="h-10 px-5 gap-2 text-sm">
-            <Settings className="w-4 h-4" /> Settings
+          <TabsTrigger value="details" className="h-10 px-5 gap-2 text-sm">
+            <FileText className="w-4 h-4" /> Details
           </TabsTrigger>
           <TabsTrigger value="questions" className="h-10 px-5 gap-2 text-sm">
             <List className="w-4 h-4" /> Questions
@@ -823,14 +823,16 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
         </TabsList>
 
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        {/* SETTINGS TAB                                                       */}
+        {/* DETAILS TAB                                                        */}
         {/* ═══════════════════════════════════════════════════════════════════ */}
-        <TabsContent value="settings">
+        <TabsContent value="details">
           <div className="max-w-2xl space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Quiz Details</CardTitle>
-                <CardDescription>Name, description, and workspace assignment.</CardDescription>
+                <CardDescription>
+                  The name and description are shown to respondents before they start. The slug becomes part of the shareable URL.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
@@ -841,6 +843,38 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                     onChange={(e) => updateDef({ name: e.target.value })}
                     placeholder="e.g. AI Readiness Assessment"
                   />
+                  <p className="text-xs text-muted-foreground">This is the title respondents see at the top of your quiz.</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="quiz-slug">
+                    URL Slug{" "}
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        The slug is the URL-friendly version of the name. It appears in the shareable link your respondents visit.
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                  <div className="flex items-center gap-0 rounded-md border focus-within:ring-2 focus-within:ring-ring">
+                    <span className="text-xs text-muted-foreground bg-muted px-3 py-2 border-r rounded-l-md whitespace-nowrap">
+                      {typeof window !== "undefined" ? window.location.origin : ""}/w/{"your-workspace"}/
+                    </span>
+                    <Input
+                      id="quiz-slug"
+                      value={packMeta?.slug ?? (def.name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}
+                      onChange={(e) => {
+                        const slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").replace(/--+/g, "-");
+                        if (packMeta) {
+                          setPackMeta({ ...packMeta, slug });
+                          setDirty(true);
+                        }
+                      }}
+                      className="border-0 focus-visible:ring-0 rounded-l-none font-mono text-sm"
+                      placeholder="ai-readiness-assessment"
+                    />
+                  </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="quiz-desc">Description</Label>
@@ -848,15 +882,16 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                     id="quiz-desc"
                     value={def.description ?? ""}
                     onChange={(e) => updateDef({ description: e.target.value })}
-                    placeholder="Describe what this quiz measures…"
-                    rows={3}
+                    placeholder="A short paragraph explaining what this quiz measures, who it's for, and what they'll learn…"
+                    rows={4}
                   />
+                  <p className="text-xs text-muted-foreground">Shown on the quiz landing page below the title. Keep it under 2-3 sentences.</p>
                 </div>
                 {packMeta && (
-                  <div className="grid gap-2">
-                    <Label>Workspace</Label>
+                  <div className="grid gap-2 pt-2 border-t">
+                    <Label className="text-muted-foreground">Workspace</Label>
                     <p className="text-sm text-muted-foreground">
-                      {workspaces.find((w) => w.id === packMeta.workspaceId)?.name ?? "Unknown"} ({packMeta.slug})
+                      {workspaces.find((w) => w.id === packMeta.workspaceId)?.name ?? "Unknown"}
                     </p>
                   </div>
                 )}
@@ -1014,7 +1049,28 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                           <Label>Type</Label>
                           <Select
                             value={selectedQ.type}
-                            onValueChange={(v) => updateQuestion(selectedQ.id, { type: v as QuestionType })}
+                            onValueChange={(v) => {
+                              const newType = v as QuestionType;
+                              const patch: Partial<Question> = { type: newType };
+                              // Auto-populate options for fixed-choice types
+                              if (newType === "yes_no" && (!selectedQ.options?.length || HAS_OPTIONS.includes(selectedQ.type) || selectedQ.type === "true_false")) {
+                                patch.options = [
+                                  { id: `opt-${nanoid(4)}`, label: "Yes", value: "yes", points: 1 },
+                                  { id: `opt-${nanoid(4)}`, label: "No", value: "no", points: 0 },
+                                ];
+                              } else if (newType === "true_false" && (!selectedQ.options?.length || HAS_OPTIONS.includes(selectedQ.type) || selectedQ.type === "yes_no")) {
+                                patch.options = [
+                                  { id: `opt-${nanoid(4)}`, label: "True", value: "true", points: 1 },
+                                  { id: `opt-${nanoid(4)}`, label: "False", value: "false", points: 0 },
+                                ];
+                              } else if (HAS_OPTIONS.includes(newType) && !selectedQ.options?.length) {
+                                patch.options = [
+                                  { id: `opt-${nanoid(4)}`, label: "Option A", value: "a", points: 0 },
+                                  { id: `opt-${nanoid(4)}`, label: "Option B", value: "b", points: 0 },
+                                ];
+                              }
+                              updateQuestion(selectedQ.id, patch);
+                            }}
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -1043,15 +1099,20 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                               <TooltipTrigger>
                                 <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
                               </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">
-                                Used in scoring conditions and calculated fields. Use snake_case (e.g. annual_revenue).
+                              <TooltipContent className="max-w-sm text-left" side="top">
+                                <p className="font-semibold mb-1">What is this?</p>
+                                <p className="text-xs mb-2">A unique identifier for this question's answer, used behind the scenes. Think of it like a column name in a spreadsheet.</p>
+                                <p className="font-semibold mb-1">Why does it matter?</p>
+                                <p className="text-xs mb-2">You'll reference this key in scoring rules (e.g. "if <code className="bg-muted px-1 rounded">team_size</code> &gt; 50, award 10 points"), calculated fields, and branching logic.</p>
+                                <p className="font-semibold mb-1">Format</p>
+                                <p className="text-xs">Use lowercase with underscores: <code className="bg-muted px-1 rounded">annual_revenue</code>, <code className="bg-muted px-1 rounded">marketing_budget</code></p>
                               </TooltipContent>
                             </Tooltip>
                           </Label>
                           <Input
                             value={selectedQ.key ?? ""}
                             onChange={(e) =>
-                              updateQuestion(selectedQ.id, { key: e.target.value.replace(/\s/g, "_") })
+                              updateQuestion(selectedQ.id, { key: e.target.value.replace(/\s/g, "_").toLowerCase() })
                             }
                             className="font-mono text-sm"
                             placeholder="question_key"
@@ -1059,11 +1120,24 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                         </div>
 
                         <div className="space-y-2">
-                          <Label>Category</Label>
+                          <Label>
+                            Category{" "}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-sm text-left" side="top">
+                                <p className="font-semibold mb-1">What is this?</p>
+                                <p className="text-xs mb-2">Groups related questions together. Categories appear as sections in the results page and PDF report.</p>
+                                <p className="font-semibold mb-1">Example</p>
+                                <p className="text-xs">A marketing quiz might have categories like "Strategy", "Content", "Analytics", and "Budget". The results page shows a score breakdown per category, helping respondents see exactly where they're strong or weak.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </Label>
                           <Input
                             value={selectedQ.category ?? ""}
                             onChange={(e) => updateQuestion(selectedQ.id, { category: e.target.value })}
-                            placeholder="e.g. Data & Tech"
+                            placeholder="e.g. Strategy"
                           />
                         </div>
                       </div>
@@ -1091,61 +1165,228 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                     </CardContent>
                   </Card>
 
-                  {/* Answer Options (for choice types) */}
-                  {HAS_OPTIONS.includes(selectedQ.type) && (
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          Answer Options
-                          <Badge variant="secondary" className="text-xs">
-                            {selectedQ.options?.length ?? 0}
-                          </Badge>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {selectedQ.options?.map((opt, optIdx) => (
-                          <div
-                            key={opt.id}
-                            className="flex items-center gap-2 group"
-                          >
-                            <span className="text-xs text-muted-foreground font-mono w-5">{optIdx + 1}</span>
-                            <Input
-                              value={opt.label}
-                              onChange={(e) => updateOption(selectedQ.id, opt.id, { label: e.target.value })}
-                              placeholder="Label"
-                              className="flex-1"
-                            />
-                            <Input
-                              value={opt.value ?? ""}
-                              onChange={(e) => updateOption(selectedQ.id, opt.id, { value: e.target.value })}
-                              placeholder="Value"
-                              className="w-28 font-mono text-xs"
-                            />
-                            <Input
-                              type="number"
-                              value={opt.points ?? 0}
-                              onChange={(e) =>
-                                updateOption(selectedQ.id, opt.id, { points: parseFloat(e.target.value) || 0 })
-                              }
-                              className="w-20 text-center"
-                            />
-                            <span className="text-xs text-muted-foreground w-8">pts</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-                              onClick={() => deleteOption(selectedQ.id, opt.id)}
-                            >
-                              <X className="w-3 h-3" />
+                  {/* ── Answer Configuration (type-specific) ─────────────── */}
+                  {(() => {
+                    const t = selectedQ.type;
+
+                    // Yes/No — fixed two options with point values
+                    if (t === "yes_no" || t === "true_false") {
+                      const labels = t === "yes_no" ? ["Yes", "No"] : ["True", "False"];
+                      const values = t === "yes_no" ? ["yes", "no"] : ["true", "false"];
+                      return (
+                        <Card>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">Answer Options</CardTitle>
+                            <CardDescription>
+                              {t === "yes_no" ? "Yes/No" : "True/False"} has fixed options. Set the point value for each.
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            {[0, 1].map((i) => {
+                              const opt = selectedQ.options?.[i];
+                              return (
+                                <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                                  <span className="text-sm font-medium w-16">{labels[i]}</span>
+                                  <div className="flex items-center gap-2 ml-auto">
+                                    <Label className="text-xs text-muted-foreground">Points:</Label>
+                                    <Input
+                                      type="number"
+                                      value={opt?.points ?? 0}
+                                      onChange={(e) => {
+                                        const pts = parseFloat(e.target.value) || 0;
+                                        const options = selectedQ.options?.length ? [...selectedQ.options] : [
+                                          { id: `opt-${nanoid(4)}`, label: labels[0], value: values[0], points: 0 },
+                                          { id: `opt-${nanoid(4)}`, label: labels[1], value: values[1], points: 0 },
+                                        ];
+                                        if (options[i]) options[i] = { ...options[i], points: pts };
+                                        updateQuestion(selectedQ.id, { options });
+                                      }}
+                                      className="w-20 h-8 text-center font-bold"
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    // Scale types — show range info + point mapping
+                    if (t === "scale_1_5" || t === "scale_1_10") {
+                      const max = t === "scale_1_5" ? 5 : 10;
+                      return (
+                        <Card>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">Scale Configuration</CardTitle>
+                            <CardDescription>
+                              Respondents choose a value from 1 to {max}. Their selection is used directly as the answer value (and as points if no scoring rules override it).
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/30">
+                              <div className="flex gap-1.5">
+                                {Array.from({ length: max }, (_, i) => (
+                                  <div key={i} className={`w-8 h-8 rounded flex items-center justify-center text-xs font-medium border ${i === Math.floor(max / 2) ? "bg-primary/10 border-primary text-primary" : "bg-background"}`}>
+                                    {i + 1}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex justify-between mt-2 px-1">
+                              <div className="space-y-1">
+                                <Label className="text-xs">Low Label (optional)</Label>
+                                <Input
+                                  value={selectedQ.minLabel ?? ""}
+                                  onChange={(e) => updateQuestion(selectedQ.id, { minLabel: e.target.value })}
+                                  placeholder="e.g. Strongly Disagree"
+                                  className="h-8 text-xs w-44"
+                                />
+                              </div>
+                              <div className="space-y-1 text-right">
+                                <Label className="text-xs">High Label (optional)</Label>
+                                <Input
+                                  value={selectedQ.maxLabel ?? ""}
+                                  onChange={(e) => updateQuestion(selectedQ.id, { maxLabel: e.target.value })}
+                                  placeholder="e.g. Strongly Agree"
+                                  className="h-8 text-xs w-44 text-right"
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    // Number / Percent / Date — no options needed, show info
+                    if (t === "number" || t === "percent" || t === "date") {
+                      const descriptions: Record<string, string> = {
+                        number: "Respondents enter a numeric value. Use this for quantities, amounts, or counts. The raw number is stored and can be used in scoring rules and calculated fields.",
+                        percent: "Respondents enter a percentage (0–100). Good for rates, growth metrics, or completion levels.",
+                        date: "Respondents pick a date from a calendar. Useful for timelines, start dates, or deadlines.",
+                      };
+                      return (
+                        <Card>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">{QUESTION_TYPE_MAP[t]?.label} Input</CardTitle>
+                            <CardDescription>{descriptions[t]}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="p-4 rounded-lg bg-muted/30 flex items-center gap-3">
+                              <span className="text-2xl">{QUESTION_TYPE_MAP[t]?.icon}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {t === "number" && "Respondent enters a number → stored as their answer value"}
+                                {t === "percent" && "Respondent enters 0–100 → stored as their answer value"}
+                                {t === "date" && "Respondent picks a date → stored as YYYY-MM-DD"}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    // Short/Long text — no options
+                    if (t === "short_text" || t === "long_text") {
+                      return (
+                        <Card>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-sm">{QUESTION_TYPE_MAP[t]?.label} Input</CardTitle>
+                            <CardDescription>
+                              Respondents type a free-text answer. Text responses aren't scored automatically but are captured in submissions and PDF reports. Use scoring rules with "contains" conditions if needed.
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="p-4 rounded-lg bg-muted/30">
+                              <div className={`bg-background border rounded-md ${t === "long_text" ? "h-20" : "h-9"} px-3 py-2 text-sm text-muted-foreground/40`}>
+                                {t === "short_text" ? "Short answer text…" : "Longer paragraph response…"}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    // Choice types (single, multi, dropdown) — full options editor
+                    if (HAS_OPTIONS.includes(t)) {
+                      const typeLabels: Record<string, { title: string; desc: string }> = {
+                        single: { title: "Single Select Options", desc: "Respondent picks exactly one option. Points for the selected option are added to their score." },
+                        multi: { title: "Multi Select Options", desc: "Respondent can pick multiple options. Points from all selected options are added together." },
+                        dropdown: { title: "Dropdown Options", desc: "Options appear in a dropdown menu. Respondent picks one. Works the same as Single Select but takes less screen space." },
+                      };
+                      const info = typeLabels[t] ?? { title: "Options", desc: "" };
+
+                      return (
+                        <Card>
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              {info.title}
+                              <Badge variant="secondary" className="text-xs">
+                                {selectedQ.options?.length ?? 0}
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription>{info.desc}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            {/* Column headers */}
+                            {(selectedQ.options?.length ?? 0) > 0 && (
+                              <div className="flex items-center gap-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">
+                                <span className="w-5" />
+                                <span className="flex-1">Label (shown to user)</span>
+                                <span className="w-28">Value (stored)</span>
+                                <span className="w-20 text-center">Points</span>
+                                <span className="w-8" />
+                                <span className="w-8" />
+                              </div>
+                            )}
+                            {selectedQ.options?.map((opt, optIdx) => (
+                              <div
+                                key={opt.id}
+                                className="flex items-center gap-2 group"
+                              >
+                                <span className="text-xs text-muted-foreground font-mono w-5">
+                                  {t === "multi" ? "☐" : t === "dropdown" ? "▾" : "○"}
+                                </span>
+                                <Input
+                                  value={opt.label}
+                                  onChange={(e) => updateOption(selectedQ.id, opt.id, { label: e.target.value })}
+                                  placeholder="Option label"
+                                  className="flex-1"
+                                />
+                                <Input
+                                  value={opt.value ?? ""}
+                                  onChange={(e) => updateOption(selectedQ.id, opt.id, { value: e.target.value })}
+                                  placeholder="value"
+                                  className="w-28 font-mono text-xs"
+                                />
+                                <Input
+                                  type="number"
+                                  value={opt.points ?? 0}
+                                  onChange={(e) =>
+                                    updateOption(selectedQ.id, opt.id, { points: parseFloat(e.target.value) || 0 })
+                                  }
+                                  className="w-20 text-center"
+                                />
+                                <span className="text-xs text-muted-foreground w-8">pts</span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                                  onClick={() => deleteOption(selectedQ.id, opt.id)}
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                            <Button variant="outline" size="sm" onClick={() => addOption(selectedQ.id)}>
+                              <Plus className="w-3 h-3 mr-2" /> Add Option
                             </Button>
-                          </div>
-                        ))}
-                        <Button variant="outline" size="sm" onClick={() => addOption(selectedQ.id)}>
-                          <Plus className="w-3 h-3 mr-2" /> Add Option
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )}
+                          </CardContent>
+                        </Card>
+                      );
+                    }
+
+                    return null;
+                  })()}
 
                   {/* Branching Logic */}
                   <Card>
@@ -1488,29 +1729,62 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4" /> Quick Reference — Question Keys
+                  <HelpCircle className="w-4 h-4" /> Quick Reference — Available Keys
                 </CardTitle>
+                <CardDescription>
+                  These are all the variable keys from your questions and calculated fields. Use them in scoring rule conditions above — for example, a condition like <code className="bg-muted px-1 rounded text-xs">team_size</code> <code className="bg-muted px-1 rounded text-xs">greater_than</code> <code className="bg-muted px-1 rounded text-xs">50</code> will check the respondent's answer to the question with key "team_size".
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {def.questions
-                    .filter((q) => q.key)
-                    .map((q) => (
-                      <Badge key={q.id} variant="outline" className="font-mono text-xs">
-                        {q.key} <span className="text-muted-foreground ml-1">({q.type})</span>
-                      </Badge>
-                    ))}
-                  {(def.calculatedFields ?? []).map((cf) => (
-                    <Badge key={cf.id} variant="secondary" className="font-mono text-xs">
-                      {cf.key} <span className="text-muted-foreground ml-1">(calc)</span>
-                    </Badge>
-                  ))}
-                  {def.questions.filter((q) => q.key).length === 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      No keys assigned yet. Add keys to questions in the Questions tab.
-                    </p>
-                  )}
-                </div>
+                {def.questions.filter((q) => q.key).length > 0 || (def.calculatedFields ?? []).length > 0 ? (
+                  <div className="space-y-3">
+                    {def.questions.filter((q) => q.key).length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Question Keys</p>
+                        <div className="flex flex-wrap gap-2">
+                          {def.questions
+                            .filter((q) => q.key)
+                            .map((q) => (
+                              <Tooltip key={q.id}>
+                                <TooltipTrigger>
+                                  <Badge variant="outline" className="font-mono text-xs cursor-help">
+                                    {q.key} <span className="text-muted-foreground ml-1">({q.type})</span>
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs">{q.prompt}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    {(def.calculatedFields ?? []).length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Calculated Fields</p>
+                        <div className="flex flex-wrap gap-2">
+                          {(def.calculatedFields ?? []).map((cf) => (
+                            <Tooltip key={cf.id}>
+                              <TooltipTrigger>
+                                <Badge variant="secondary" className="font-mono text-xs cursor-help">
+                                  {cf.key} <span className="text-muted-foreground ml-1">(calc)</span>
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs font-medium">{cf.label}</p>
+                                <p className="text-xs font-mono text-muted-foreground">{cf.expression}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No keys assigned yet. Go to the Questions tab and give each question a Variable Key — you'll then reference those keys here in your scoring rules.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -1526,8 +1800,7 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
               <CardHeader>
                 <CardTitle>Outcomes</CardTitle>
                 <CardDescription>
-                  Define the possible results. Users see one outcome based on their score and threshold
-                  rules.
+                  Outcomes are the result pages shown to respondents after they complete your quiz. Each outcome represents a different result — like "Industry Leader", "On Track", or "Needs Improvement". You define the outcomes here, then use Threshold Rules below to control which outcome a respondent gets based on their total score.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1636,16 +1909,16 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
               <CardHeader>
                 <CardTitle>Threshold Rules</CardTitle>
                 <CardDescription>
-                  Map score ranges to outcomes. The engine evaluates top-to-bottom and picks the last
-                  match.
+                  Connect score ranges to outcomes. For example: 0–40 points → "Needs Improvement", 41–70 → "On Track", 71–100 → "Industry Leader". 
+                  Order matters — put your lowest score range first and highest last. The engine checks each rule from top to bottom and assigns the last one that matches the respondent's score.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(def.thresholds ?? []).length > 0 && (
                   <div className="text-xs font-medium text-muted-foreground grid grid-cols-12 gap-2 px-2">
-                    <div className="col-span-3">Min Score</div>
-                    <div className="col-span-3">Max Score</div>
-                    <div className="col-span-5">→ Outcome</div>
+                    <div className="col-span-3">Min Score (≥)</div>
+                    <div className="col-span-3">Max Score (≤)</div>
+                    <div className="col-span-5">→ Assign This Outcome</div>
                     <div className="col-span-1" />
                   </div>
                 )}
@@ -1714,6 +1987,14 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                 </Button>
                 {def.outcomes.length === 0 && (
                   <p className="text-xs text-muted-foreground">Add outcomes above first.</p>
+                )}
+                {(def.thresholds ?? []).length > 0 && (
+                  <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+                    <p className="font-semibold mb-1">💡 How scoring works</p>
+                    <p>As a respondent answers questions, their points add up. When they finish, the total score is checked against these rules from top to bottom. Leave "Max Score" empty (∞) on the last rule to catch all scores above the minimum.</p>
+                    <p className="mt-1.5 font-medium">Example: 3 outcomes for a 100-point quiz</p>
+                    <p className="font-mono mt-1">0–40 → Needs Improvement &nbsp;|&nbsp; 41–70 → On Track &nbsp;|&nbsp; 71–∞ → Industry Leader</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
