@@ -69,6 +69,7 @@ import {
   Target,
   DollarSign,
   ChevronLeft,
+  ChevronRight,
   Copy,
   ArrowUp,
   ArrowDown,
@@ -188,6 +189,13 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
   const [activeTab, setActiveTab] = useState("details");
   const [dirty, setDirty] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+
+  // Tab navigation order
+  const TAB_ORDER = ["details", "questions", "scoring", "results", "paywall"] as const;
+  const TAB_LABELS: Record<string, string> = { details: "Details", questions: "Questions", scoring: "Scoring", results: "Results", paywall: "Paywall" };
+  const tabIdx = TAB_ORDER.indexOf(activeTab as any);
+  const prevTab = tabIdx > 0 ? TAB_ORDER[tabIdx - 1] : null;
+  const nextTab = tabIdx < TAB_ORDER.length - 1 ? TAB_ORDER[tabIdx + 1] : null;
 
   // Selected question
   const selectedQ = useMemo(
@@ -2150,6 +2158,22 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
             </Card>
           </div>
         </TabsContent>
+
+        {/* ─── Tab Navigation Buttons ─── */}
+        <div className="flex items-center justify-between pt-4 border-t mt-2">
+          {prevTab ? (
+            <Button variant="outline" className="gap-2" onClick={() => setActiveTab(prevTab)}>
+              <ChevronLeft className="w-4 h-4" />
+              Previous: {TAB_LABELS[prevTab]}
+            </Button>
+          ) : <div />}
+          {nextTab ? (
+            <Button className="gap-2" onClick={() => setActiveTab(nextTab)}>
+              Next: {TAB_LABELS[nextTab]}
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          ) : <div />}
+        </div>
       </Tabs>
 
       {/* ─── Sticky Save Bar ────────────────────────────────────────────── */}
