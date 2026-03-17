@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, FileText, Settings, BarChart3, LogOut, PenTool } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, BarChart3, LogOut, PenTool, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -10,8 +11,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
     { href: "/admin/quizzes", icon: FileText, label: "My Quizzes" },
     { href: "/admin/builder/new", icon: PenTool, label: "Create Quiz" },
-    { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
     { href: "/admin/settings", icon: Settings, label: "Settings" },
+  ];
+
+  const comingSoonItems = [
+    { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
   ];
 
   const isActive = (item: typeof navItems[0]) => {
@@ -48,6 +52,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </a>
             </Link>
           ))}
+
+          {comingSoonItems.length > 0 && (
+            <>
+              <div className="pt-4 pb-1 px-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Coming Soon</p>
+              </div>
+              {comingSoonItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <a className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                    isActive(item)
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground/50 hover:bg-muted hover:text-muted-foreground"
+                  )}>
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                    <Badge variant="outline" className="ml-auto text-[9px] px-1.5 py-0 text-muted-foreground/50 border-muted-foreground/20">Soon</Badge>
+                  </a>
+                </Link>
+              ))}
+            </>
+          )}
         </div>
 
         <div className="p-4 border-t border-sidebar-border">

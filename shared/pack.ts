@@ -45,6 +45,10 @@ export interface Question {
   required?: boolean;
   branchingRules?: BranchingRule[];
   defaultNextQuestionId?: string;
+  /** Label for low end of scale (scale_1_5, scale_1_10) */
+  minLabel?: string;
+  /** Label for high end of scale (scale_1_5, scale_1_10) */
+  maxLabel?: string;
 }
 
 export interface CalculatedField {
