@@ -96,6 +96,8 @@ export interface Submission {
     message: string;
   };
   email?: string;
+  name?: string;
+  phone?: string;
   paid: boolean;
   status: 'started' | 'completed';
   startedAt: string;

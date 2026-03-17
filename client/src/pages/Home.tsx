@@ -143,22 +143,11 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Coming Soon — compact */}
-            <div className="mt-12 text-center">
-              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-                Coming Soon
-              </p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {COMING_SOON.map((f) => (
-                  <span
-                    key={f}
-                    className="px-4 py-2 text-sm bg-muted/50 text-muted-foreground rounded-full border"
-                  >
-                    {f}
-                  </span>
-                ))}
-              </div>
-            </div>
+            {/* Coming Soon — single line */}
+            <p className="mt-12 text-center text-sm text-muted-foreground">
+              <span className="font-semibold uppercase tracking-wider">Coming Soon:</span>{" "}
+              {COMING_SOON.join(" · ")}
+            </p>
           </div>
         </section>
 
@@ -251,7 +240,7 @@ export default function Home() {
                       📄 Download PDF Report
                     </div>
                     <div className="flex-1 text-center py-2.5 bg-muted text-foreground rounded-lg text-sm font-medium border">
-                      Book a Call →
+                      Schedule a Call →
                     </div>
                   </div>
                 </div>
@@ -272,7 +261,7 @@ export default function Home() {
                     "Personalized score with category breakdown",
                     "Branded PDF reports auto-emailed to each lead",
                     "Gate results behind Stripe paywall",
-                    "Custom CTAs per outcome (book a call, download, buy)",
+                    "Custom CTAs per outcome (schedule a call, download, buy)",
                   ].map((item) => (
                     <li
                       key={item}

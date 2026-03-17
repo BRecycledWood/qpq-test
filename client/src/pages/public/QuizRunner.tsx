@@ -28,6 +28,11 @@ export default function QuizRunner() {
   const [calculatedValues, setCalculatedValues] = useState<Record<string, any>>({});
   const [quizOutcome, setQuizOutcome] = useState<Outcome | null>(null);
   
+  // Lead capture State
+  const [leadName, setLeadName] = useState('');
+  const [leadEmail, setLeadEmail] = useState('');
+  const [leadPhone, setLeadPhone] = useState('');
+
   // UI State
   const [status, setStatus] = useState<'landing' | 'running' | 'paywall' | 'results' | 'knockout'>('landing');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -158,6 +163,9 @@ export default function QuizRunner() {
         severity: finalOutcome.severity,
         message: finalOutcome.message
       } : undefined,
+      name: leadName || undefined,
+      email: leadEmail || undefined,
+      phone: leadPhone || undefined,
       paid: !quiz.gateResults,
       status: 'completed',
       startedAt: new Date().toISOString(), // Mock
@@ -391,22 +399,56 @@ export default function QuizRunner() {
   if (status === 'landing') {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
-        <div className="max-w-2xl w-full space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <h1 className="text-5xl font-display font-bold">{quiz.title}</h1>
-          <p className="text-xl text-muted-foreground">{quiz.description}</p>
-          <div className="flex justify-center gap-8 py-8">
-            <div className="flex flex-col items-center">
-              <span className="text-3xl font-bold">{quiz.questions.length}</span>
-              <span className="text-xs uppercase text-muted-foreground">Questions</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-3xl font-bold">{Math.ceil(quiz.questions.length * 0.5)}m</span>
-              <span className="text-xs uppercase text-muted-foreground">Time</span>
+        <div className="max-w-xl w-full space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="space-y-3">
+            <h1 className="text-4xl lg:text-5xl font-display font-bold">{quiz.title}</h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              In this quick {quiz.questions.length}-question assessment we'll evaluate your
+              company's readiness and pinpoint areas for improvement. Takes about{" "}
+              {Math.ceil(quiz.questions.length * 0.5)} minutes.
+            </p>
+          </div>
+
+          {/* Lead capture */}
+          <div className="text-left space-y-4 bg-muted/30 rounded-xl p-6 border">
+            <p className="text-sm font-semibold text-center text-muted-foreground uppercase tracking-wider">
+              Enter your details to get started
+            </p>
+            <div className="space-y-3">
+              <Input
+                placeholder="Your name"
+                value={leadName}
+                onChange={(e) => setLeadName(e.target.value)}
+                className="h-12"
+              />
+              <Input
+                type="email"
+                placeholder="Email address"
+                value={leadEmail}
+                onChange={(e) => setLeadEmail(e.target.value)}
+                className="h-12"
+              />
+              <Input
+                type="tel"
+                placeholder="Phone number (optional)"
+                value={leadPhone}
+                onChange={(e) => setLeadPhone(e.target.value)}
+                className="h-12"
+              />
             </div>
           </div>
-          <Button size="lg" className="h-16 px-12 text-xl rounded-full" onClick={() => setStatus('running')}>
-            Start Quiz <ArrowRight className="ml-2"/>
+
+          <Button
+            size="lg"
+            className="h-16 px-12 text-xl rounded-full"
+            disabled={!leadName.trim() || !leadEmail.trim()}
+            onClick={() => setStatus('running')}
+          >
+            Ready? Let's Go <ArrowRight className="ml-2"/>
           </Button>
+          <p className="text-xs text-muted-foreground">
+            Your info is used only to deliver your results. We won't spam you.
+          </p>
         </div>
       </div>
     );

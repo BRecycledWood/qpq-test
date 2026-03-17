@@ -152,7 +152,7 @@ export default function Dashboard() {
     <AdminLayout>
       {/* Demo banner */}
       {isDemo && !statsLoading && (
-        <div className="mb-6 flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+        <div className="mb-6 flex items-center gap-2 rounded-lg border border-orange-300 bg-orange-50 px-4 py-3 text-sm text-orange-700">
           <Info className="h-4 w-4 shrink-0" />
           <span>
             <strong>Demo Data</strong> — This is sample data to show you how your dashboard will look. Create and publish a quiz to see real analytics!
