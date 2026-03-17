@@ -81,6 +81,30 @@ import {
   X,
 } from "lucide-react";
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Build a clean option value like "01-a", "01-b" from question index + existing options */
+function nextOptionValue(qIndex: number, existingOptions: QuestionOption[] = []): string {
+  const pad = String(qIndex + 1).padStart(2, "0");
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  const used = new Set(existingOptions.map((o) => o.value));
+  for (const ch of letters) {
+    const candidate = `${pad}-${ch}`;
+    if (!used.has(candidate)) return candidate;
+  }
+  // Fallback: double letter
+  return `${pad}-${letters[existingOptions.length % 26]}${letters[Math.floor(existingOptions.length / 26) % 26]}`;
+}
+
+/** Build initial option pair for a new question at the given index */
+function initialOptions(qIndex: number): [QuestionOption, QuestionOption] {
+  const pad = String(qIndex + 1).padStart(2, "0");
+  return [
+    { id: `opt-${nanoid(4)}`, label: "Option A", value: `${pad}-a`, points: 0 },
+    { id: `opt-${nanoid(4)}`, label: "Option B", value: `${pad}-b`, points: 0 },
+  ];
+}
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const QUESTION_TYPES: { value: QuestionType; label: string; icon: string; group: string }[] = [
@@ -421,16 +445,14 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
   }, []);
 
   const addQuestion = useCallback(() => {
+    const qIdx = def.questions.length;
     const newQ: Question = {
       id: `q-${nanoid(6)}`,
       prompt: "New Question",
       type: "single",
-      key: `q_${def.questions.length + 1}`,
+      key: `q_${qIdx + 1}`,
       required: true,
-      options: [
-        { id: `opt-${nanoid(4)}`, label: "Option A", value: "a", points: 0 },
-        { id: `opt-${nanoid(4)}`, label: "Option B", value: "b", points: 0 },
-      ],
+      options: [...initialOptions(qIdx)],
     };
     setDef((prev) => ({ ...prev, questions: [...prev.questions, newQ] }));
     setSelectedQId(newQ.id);
@@ -492,10 +514,13 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
   // ─── Option Helpers ─────────────────────────────────────────────────────────
 
   const addOption = useCallback((qId: string) => {
+    const q = def.questions.find((q) => q.id === qId);
+    const qIdx = def.questions.findIndex((q) => q.id === qId);
+    const existing = q?.options ?? [];
     updateQuestion(qId, {
       options: [
-        ...(def.questions.find((q) => q.id === qId)?.options ?? []),
-        { id: `opt-${nanoid(4)}`, label: "New Option", value: nanoid(4), points: 0 },
+        ...existing,
+        { id: `opt-${nanoid(4)}`, label: "New Option", value: nextOptionValue(qIdx, existing), points: 0 },
       ],
     });
   }, [def.questions, updateQuestion]);
@@ -857,8 +882,10 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                   <Label htmlFor="quiz-slug">
                     URL Slug{" "}
                     <Tooltip>
-                      <TooltipTrigger>
-                        <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help inline-flex" onClick={(e) => e.preventDefault()}>
+                          <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs">
                         The slug is the URL-friendly version of the name. It appears in the shareable link your respondents visit.
@@ -1072,10 +1099,8 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                                   { id: `opt-${nanoid(4)}`, label: "False", value: "false", points: 0 },
                                 ];
                               } else if (HAS_OPTIONS.includes(newType) && !selectedQ.options?.length) {
-                                patch.options = [
-                                  { id: `opt-${nanoid(4)}`, label: "Option A", value: "a", points: 0 },
-                                  { id: `opt-${nanoid(4)}`, label: "Option B", value: "b", points: 0 },
-                                ];
+                                const qIdx = def.questions.findIndex((q) => q.id === selectedQ.id);
+                                patch.options = [...initialOptions(qIdx)];
                               }
                               updateQuestion(selectedQ.id, patch);
                             }}
@@ -1104,8 +1129,10 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                           <Label>
                             Variable Key{" "}
                             <Tooltip>
-                              <TooltipTrigger>
-                                <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help inline-flex" onClick={(e) => e.preventDefault()}>
+                                  <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent className="max-w-sm text-left" side="top">
                                 <p className="font-semibold mb-1">What is this?</p>
@@ -1131,8 +1158,10 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                           <Label>
                             Category{" "}
                             <Tooltip>
-                              <TooltipTrigger>
-                                <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
+                              <TooltipTrigger asChild>
+                                <span className="cursor-help inline-flex" onClick={(e) => e.preventDefault()}>
+                                  <HelpCircle className="w-3 h-3 inline text-muted-foreground" />
+                                </span>
                               </TooltipTrigger>
                               <TooltipContent className="max-w-sm text-left" side="top">
                                 <p className="font-semibold mb-1">What is this?</p>
@@ -1340,7 +1369,19 @@ export default function QuizBuilderPro({ isNew }: { isNew?: boolean }) {
                               <div className="flex items-center gap-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">
                                 <span className="w-5" />
                                 <span className="flex-1">Label (shown to user)</span>
-                                <span className="w-28">Value (stored)</span>
+                                <span className="w-28">
+                                  Value (stored){" "}
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="cursor-help inline-flex">
+                                        <HelpCircle className="w-2.5 h-2.5 inline text-muted-foreground" />
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="max-w-xs text-left" side="top">
+                                      <p className="text-xs">The internal ID saved when this option is selected. Referenced in branching rules, scoring, and calculated fields. Format: <code className="bg-muted px-1 rounded">QQ-x</code> (question number + letter).</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </span>
                                 <span className="w-20 text-center">Points</span>
                                 <span className="w-8" />
                                 <span className="w-8" />
