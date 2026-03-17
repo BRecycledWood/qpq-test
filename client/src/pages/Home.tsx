@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { CheckCircle2, ArrowRight, Zap, CreditCard, FileText, Users, ShieldCheck, TrendingUp, GitBranch, Calculator, BarChart3, Mail, Lock, Layers, Settings2, Play } from "lucide-react";
+import { ArrowRight, Zap, CreditCard, FileText, Users, ShieldCheck, TrendingUp, GitBranch, Calculator, BarChart3, Mail, Lock, Layers, Settings2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import HeroProductMockup from "@/components/HeroProductMockup";
 
@@ -88,66 +88,25 @@ export default function Home() {
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="h-14 px-8 text-base w-full sm:w-auto">
-                  <Play className="mr-2 w-4 h-4" />
-                  Watch 2-min Demo
-                </Button>
+                <Link href="/pricing">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-14 px-8 text-base w-full sm:w-auto"
+                  >
+                    View Pricing
+                  </Button>
+                </Link>
               </div>
 
-              <div className="flex items-center gap-6 pt-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /><span>No credit card required</span></div>
-                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /><span>Free to start</span></div>
-                <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-500" /><span>5-min setup</span></div>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Free to start · No credit card required · 5-min setup
+              </p>
             </div>
 
+            {/* Right — mockup (clean, no floating cards) */}
             <div className="relative">
               <HeroProductMockup />
-              <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-lg shadow-xl border hidden md:block animate-in slide-in-from-bottom-4 fade-in duration-700 delay-500">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">New Lead Captured</p>
-                    <p className="text-xs text-muted-foreground">PDF report emailed ✓</p>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -top-4 -right-4 bg-card p-3 rounded-lg shadow-xl border hidden md:block animate-in slide-in-from-top-4 fade-in duration-700 delay-700">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">74%</div>
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">Assessment Score</div>
-                  <div className="text-[10px] font-bold text-emerald-600 bg-emerald-50 rounded px-2 py-0.5 mt-1">High Potential</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Social Proof Bar */}
-        <section className="py-10 bg-muted/30 border-y">
-          <div className="max-w-5xl mx-auto px-6 lg:px-12">
-            <p className="text-xs text-center text-muted-foreground uppercase tracking-wider font-semibold mb-6">
-              Trusted by agencies and SaaS companies for quiz-based lead generation
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div>
-                <div className="text-3xl font-bold font-display text-foreground">30%+</div>
-                <div className="text-sm text-muted-foreground">Average conversion rate</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold font-display text-foreground">5 min</div>
-                <div className="text-sm text-muted-foreground">Average setup time</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold font-display text-foreground">100%</div>
-                <div className="text-sm text-muted-foreground">White-label ready</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold font-display text-foreground">$0</div>
-                <div className="text-sm text-muted-foreground">To get started</div>
-              </div>
             </div>
           </div>
         </section>
