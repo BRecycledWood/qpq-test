@@ -3,7 +3,7 @@ import { CheckCircle, Mail, BarChart3, Zap, FileText, Users, ArrowRight } from "
 import DemoDashboardPreview from "@/components/DemoDashboardPreview";
 
 const CONTACT_MAILTO =
-  "mailto:hello@howstud.io?subject=Quiz%20Pro%20Quo%20Demo%20Request&body=Hi%2C%20I%27d%20love%20to%20learn%20more%20about%20Quiz%20Pro%20Quo%20for%20my%20business.";
+  "mailto:hello@howstud.io?subject=Quiz%20Pro%20Quo%20Demo%20Request&body=Hi%2C%20I'd%20love%20to%20learn%20more%20about%20Quiz%20Pro%20Quo%20for%20my%20business.";
 
 const DEMO_QUIZZES = [
   {
@@ -37,11 +37,11 @@ const HOW_IT_WORKS = [
     step: "2",
     title: "Capture leads with an email gate",
     description:
-      "Before showing results, collect the visitor's email and name. Every result triggers a personalised PDF report.",
+      "Before showing results, collect the visitor's email and name. Every result triggers a personalized PDF report.",
   },
   {
     step: "3",
-    title: "Analyse and follow up",
+    title: "Analyze and follow up",
     description:
       "View your analytics dashboard to track completion rates, outcome distributions, and individual leads.",
   },
@@ -60,7 +60,7 @@ export default function Demo() {
             Turn assessments into qualified leads
           </h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
-            Quiz Pro Quo lets you build scored quizzes that capture emails, deliver personalised PDF
+            Quiz Pro Quo lets you build scored quizzes that capture emails, deliver personalized PDF
             reports, and feed a real-time analytics dashboard — no code required.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -134,7 +134,7 @@ export default function Demo() {
       </section>
 
       {/* Feature: Assessment engine */}
-      <section className="py-16 px-4 bg-muted/30">
+      <section className="py-16 px-4 bg-background">
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
             <div className="flex items-center gap-2 text-primary mb-3">
@@ -217,7 +217,7 @@ export default function Demo() {
               Get My Results →
             </button>
             <p className="text-xs text-muted-foreground text-center mt-2">
-              You'll receive a personalised PDF report
+              You'll receive a personalized PDF report
             </p>
           </div>
           <div className="order-1 md:order-2">

@@ -169,17 +169,28 @@ export default function Pricing() {
                 </p>
 
                 {/* CTA */}
-                <Link href={plan.name === "Enterprise" ? "mailto:hello@howstud.io" : "/demo"}>
-                  <Button
-                    variant={plan.ctaVariant}
-                    className={cn(
-                      "w-full h-12 text-sm font-semibold",
-                      plan.highlight && "shadow-lg shadow-primary/20"
-                    )}
-                  >
-                    {plan.cta}
-                  </Button>
-                </Link>
+                {plan.name === "Enterprise" ? (
+                  <a href="mailto:hello@howstud.io?subject=Quiz%20Pro%20Quo%20Enterprise%20Inquiry">
+                    <Button
+                      variant={plan.ctaVariant}
+                      className="w-full h-12 text-sm font-semibold"
+                    >
+                      {plan.cta}
+                    </Button>
+                  </a>
+                ) : (
+                  <Link href="/demo">
+                    <Button
+                      variant={plan.ctaVariant}
+                      className={cn(
+                        "w-full h-12 text-sm font-semibold",
+                        plan.highlight && "shadow-lg shadow-primary/20"
+                      )}
+                    >
+                      {plan.cta}
+                    </Button>
+                  </Link>
+                )}
 
                 {/* Features */}
                 <div className="mt-6 pt-6 border-t space-y-3">

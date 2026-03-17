@@ -139,7 +139,7 @@ function EmailGate({
           </div>
           <h2 className="text-2xl font-bold">You're almost done.</h2>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Enter your details to unlock your personalised results and receive your PDF report by email.
+            Enter your details to unlock your personalized results and receive your PDF report by email.
           </p>
         </div>
 

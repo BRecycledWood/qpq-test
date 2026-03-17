@@ -25,7 +25,7 @@ export default function Terms() {
           <section>
             <h2 className="text-xl font-bold mb-3">2. Use of the Service</h2>
             <p className="text-muted-foreground leading-relaxed">
-              You may use the Service to create, deploy, and analyse scored assessments and lead-capture quizzes.
+              You may use the Service to create, deploy, and analyze scored assessments and lead-capture quizzes.
               You are responsible for all content you create on the platform, including quiz questions, outcomes,
               and any communications sent to quiz respondents.
             </p>

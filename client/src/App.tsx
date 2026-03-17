@@ -73,7 +73,6 @@ function App() {
         <Toaster />
         <ScrollToTop />
         <div className="min-h-screen bg-background text-foreground">
-          <ScrollToTop />
           <TopNav />
           <Router />
         </div>

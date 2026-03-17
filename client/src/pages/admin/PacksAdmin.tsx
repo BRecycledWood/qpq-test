@@ -1045,7 +1045,7 @@ export default function PacksAdmin() {
             <div>
               <h1 className="text-2xl font-bold font-display">Admin Access</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                This panel is for QuizProQuo platform operators only.
+                This panel is for Quiz Pro Quo platform operators only.
               </p>
             </div>
           </div>
@@ -1071,7 +1071,7 @@ export default function PacksAdmin() {
           <div className="text-center space-y-2 text-sm text-muted-foreground">
             <p>Don't have an admin key?</p>
             <a
-              href="mailto:hello@howstud.io?subject=QuizProQuo%20Admin%20Access"
+              href="mailto:hello@howstud.io?subject=Quiz%20Pro%20Quo%20Admin%20Access"
               className="text-primary hover:underline font-medium"
             >
               Contact us to get access →

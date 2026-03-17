@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
             <p className="text-muted-foreground leading-relaxed">
               When you complete a quiz on our platform, we collect the information you voluntarily provide,
               including your name and email address at the email gate. We also collect quiz response data
-              (the answers you submit) in order to calculate your score and generate your personalised PDF report.
+              (the answers you submit) in order to calculate your score and generate your personalized PDF report.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-3">
               We may also collect standard web analytics data such as page views, browser type, and device
@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-xl font-bold mb-3">2. How We Use Your Information</h2>
             <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
-              <li>To generate and deliver your personalised PDF assessment report via email.</li>
+              <li>To generate and deliver your personalized PDF assessment report via email.</li>
               <li>To notify the quiz owner of a new lead submission.</li>
               <li>To display aggregate analytics to the quiz owner (outcome distributions, completion rates).</li>
               <li>To improve the platform and fix bugs.</li>

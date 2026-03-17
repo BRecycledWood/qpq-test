@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowRight, Zap, CreditCard, FileText, Users, ShieldCheck, TrendingUp, GitBranch, Calculator, BarChart3, Mail, Lock, Layers, Settings2 } from "lucide-react";
+import { ArrowRight, Zap, CreditCard, FileText, GitBranch, BarChart3, Mail, Lock, Layers, Settings2, Menu, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import HeroProductMockup from "@/components/HeroProductMockup";
 
@@ -29,13 +30,15 @@ const COMING_SOON = [
 ];
 
 export default function Home() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
       {/* ─── Header ─── */}
       <header className="h-16 border-b flex items-center justify-between px-6 lg:px-12 sticky top-0 bg-background/80 backdrop-blur-md z-50">
         <div className="flex items-center gap-2 font-bold text-xl text-primary font-display">
-          <img src="/logo.png" alt="QuizProQuo" className="h-8 w-auto" />
-          QuizProQuo
+          <img src="/logo.png" alt="Quiz Pro Quo" className="h-8 w-auto" />
+          Quiz Pro Quo
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>
@@ -44,7 +47,7 @@ export default function Home() {
           <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
           <Link href="/demo" className="hover:text-foreground transition-colors">Demo</Link>
         </nav>
-        <div className="flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-4">
           <Link href="/admin">
             <Button variant="ghost" size="sm">Sign In</Button>
           </Link>
@@ -52,7 +55,34 @@ export default function Home() {
             <Button size="sm">Get Started →</Button>
           </Link>
         </div>
+
+        {/* Mobile hamburger */}
+        <button
+          className="md:hidden p-2 -mr-2 text-foreground"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
       </header>
+
+      {/* Mobile menu overlay */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-16 z-40 bg-background/98 backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-200">
+          <nav className="flex flex-col p-6 space-y-1">
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-foreground hover:bg-muted transition-colors">Features</a>
+            <a href="#use-cases" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-foreground hover:bg-muted transition-colors">Use Cases</a>
+            <Link href="/templates" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-foreground hover:bg-muted transition-colors">Templates</Link>
+            <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-foreground hover:bg-muted transition-colors">Pricing</Link>
+            <Link href="/demo" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-foreground hover:bg-muted transition-colors">Demo</Link>
+            <div className="border-t my-3" />
+            <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-muted transition-colors">Sign In</Link>
+            <Link href="/demo" onClick={() => setMobileMenuOpen(false)}>
+              <Button className="w-full mt-2">Get Started →</Button>
+            </Link>
+          </nav>
+        </div>
+      )}
 
       <main className="flex-1">
         {/* ─── Hero ─── */}
@@ -315,7 +345,7 @@ export default function Home() {
                 {
                   emoji: "🚀",
                   title: "Onboarding Flows",
-                  desc: "Personalise the new-user journey based on role, goals, and experience.",
+                  desc: "Personalize the new-user journey based on role, goals, and experience.",
                   color: "border-l-sky-500",
                 },
                 {
@@ -350,7 +380,7 @@ export default function Home() {
         <section className="py-24 bg-primary text-primary-foreground">
           <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center space-y-8">
             <h2 className="text-4xl font-bold font-display">
-              Ready to build your first quiz?
+              Ready to build your <span className="underline decoration-white/40 decoration-4 underline-offset-4">first quiz</span>?
             </h2>
             <p className="text-xl text-primary-foreground/70">
               Start free. No credit card required.
@@ -383,8 +413,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto grid md:grid-cols-5 gap-8 mb-12">
           <div className="space-y-4 md:col-span-2">
             <div className="flex items-center gap-2 font-bold text-xl text-primary font-display">
-              <img src="/logo.png" alt="QuizProQuo" className="h-8 w-auto" />
-              QuizProQuo
+              <img src="/logo.png" alt="Quiz Pro Quo" className="h-8 w-auto" />
+              Quiz Pro Quo
             </div>
             <p className="text-sm text-muted-foreground">
               The enterprise quiz platform for modern businesses.

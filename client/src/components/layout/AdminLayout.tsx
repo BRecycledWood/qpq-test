@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, FileText, Settings, BarChart3, LogOut, PenTool, Lock } from "lucide-react";
+import { LayoutDashboard, FileText, Settings, BarChart3, LogOut, PenTool } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
                 Q
               </div>
-              QuizProQuo
+              Quiz Pro Quo
             </a>
           </Link>
         </div>
@@ -99,7 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
         <header className="h-16 bg-background border-b px-6 flex items-center justify-between md:hidden">
           <Link href="/admin">
-            <span className="font-bold text-primary">QuizProQuo</span>
+            <span className="font-bold text-primary">Quiz Pro Quo</span>
           </Link>
         </header>
         
