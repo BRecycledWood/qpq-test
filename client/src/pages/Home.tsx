@@ -116,7 +116,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-6 lg:px-12">
             <div className="text-center mx-auto mb-16 space-y-4">
               <h2 className="text-3xl lg:text-4xl font-bold font-display whitespace-nowrap">
-                Everything you need to build, launch &amp; monetize
+                Everything you need to <span className="text-primary">build, launch &amp; monetize</span>
               </h2>
               <p className="text-lg text-muted-foreground">
                 A complete quiz platform — not just a form builder.
@@ -165,7 +165,7 @@ export default function Home() {
                     <div className="w-3 h-3 rounded-full bg-green-400" />
                   </div>
                   <div className="flex-1 flex justify-center">
-                    <div className="bg-background rounded-md px-4 py-1 text-xs text-muted-foreground border w-64 text-center">
+                    <div className="bg-background rounded-md px-4 py-1 text-xs text-muted-foreground border text-center whitespace-nowrap">
                       qproquo.howstud.io/results
                     </div>
                   </div>
@@ -285,7 +285,7 @@ export default function Home() {
                 Use Cases
               </p>
               <h2 className="text-3xl lg:text-4xl font-bold font-display">
-                Built for any industry
+                Built for <span className="text-primary">any industry</span>
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 From lead qualification to compliance checks — our platform adapts to
@@ -359,17 +359,16 @@ export default function Home() {
               <Link href="/demo">
                 <Button
                   size="lg"
-                  variant="secondary"
-                  className="h-14 px-10 text-lg w-full sm:w-auto"
+                  className="h-14 px-10 text-lg w-full sm:w-auto bg-white text-primary font-semibold shadow-lg hover:bg-white/90"
                 >
-                  Get Started for Free
+                  Get Started for Free <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
               <a href={DEMO_MAILTO}>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-14 px-10 text-lg w-full sm:w-auto border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                  className="h-14 px-10 text-lg w-full sm:w-auto bg-white/15 border-2 border-white/60 text-white font-semibold hover:bg-white/25"
                 >
                   Request Custom Demo
                 </Button>
