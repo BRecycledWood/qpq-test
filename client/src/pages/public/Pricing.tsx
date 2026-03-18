@@ -29,7 +29,7 @@ const PLANS = [
     desc: "For agencies and growing businesses ready to scale lead generation.",
     monthlyPrice: 49,
     annualPrice: 39,
-    cta: "Start Pro Trial →",
+    cta: "Start Pro Trial \u2192",
     ctaVariant: "default" as const,
     highlight: true,
     popular: true,
@@ -50,7 +50,7 @@ const PLANS = [
     desc: "For organizations running assessments at scale with custom requirements.",
     monthlyPrice: 179,
     annualPrice: 149,
-    cta: "Contact Sales",
+    cta: "Schedule a Call",
     ctaVariant: "outline" as const,
     highlight: false,
     features: [
@@ -77,7 +77,7 @@ const FAQS = [
   },
   {
     q: "Is there a refund policy?",
-    a: "Yes — if you're not satisfied within the first 14 days of any paid plan, contact us for a full refund. No questions asked.",
+    a: "Yes \u2014 if you're not satisfied within the first 14 days of any paid plan, contact us for a full refund. No questions asked.",
   },
   {
     q: "Can I use my own domain?",
@@ -85,7 +85,7 @@ const FAQS = [
   },
   {
     q: "What happens if I exceed my lead limit?",
-    a: "We'll notify you when you're near your limit. Quizzes will continue to function but new leads won't be captured until the next billing cycle — or you can upgrade your plan instantly.",
+    a: "We'll notify you when you're near your limit. Quizzes will continue to function but new leads won't be captured until the next billing cycle \u2014 or you can upgrade your plan instantly.",
   },
 ];
 
@@ -170,7 +170,7 @@ export default function Pricing() {
 
                 {/* CTA */}
                 {plan.name === "Enterprise" ? (
-                  <a href="mailto:hello@howstud.io?subject=Quiz%20Pro%20Quo%20Enterprise%20Inquiry">
+                  <a href="https://calendly.com/brad-howstudio" target="_blank" rel="noopener noreferrer">
                     <Button
                       variant={plan.ctaVariant}
                       className="w-full h-12 text-sm font-semibold"
@@ -229,7 +229,7 @@ export default function Pricing() {
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
               >
                 {faq.q}
-                <span className="text-muted-foreground">{openFaq === i ? "−" : "+"}</span>
+                <span className="text-muted-foreground">{openFaq === i ? "\u2212" : "+"}</span>
               </button>
               {openFaq === i && (
                 <div className="px-6 pb-4 text-sm text-muted-foreground leading-relaxed">
@@ -243,3 +243,4 @@ export default function Pricing() {
     </div>
   );
 }
+"}
