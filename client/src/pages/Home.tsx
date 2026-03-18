@@ -1,13 +1,23 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowRight, Zap, CreditCard, FileText, GitBranch, BarChart3, Mail, Lock, Layers, Settings2, Menu, X } from "lucide-react";
+import { ArrowRight, Check, Zap, CreditCard, FileText, GitBranch, BarChart3, Mail, Lock, Layers, Settings2, Menu, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import HeroProductMockup from "@/components/HeroProductMockup";
 
 const CALENDLY_URL = "https://calendly.com/brad-howstudio";
 
-/* \u2500\u2500\u2500 Feature grid data \u2500\u2500\u2500 */
+/*
+ * Runtime-safe character constants.
+ * We use String.fromCharCode / String.fromCodePoint so the source file
+ * stays pure-ASCII and cannot be mangled by the GitHub push API.
+ */
+const CH_ARROW = String.fromCharCode(8594);   // right arrow
+const CH_MDASH = String.fromCharCode(8212);   // em dash
+const CH_DOT   = String.fromCharCode(183);    // middle dot
+const CH_CHECK = String.fromCharCode(10003);  // check mark
+
+/* --- Feature grid data --- */
 const FEATURES = [
   { icon: Settings2, label: "Visual Quiz Editor", desc: "Drag-and-drop builder with live preview" },
   { icon: GitBranch, label: "Branching Logic", desc: "Route users down different paths based on answers" },
@@ -33,7 +43,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
-      {/* \u2500\u2500\u2500 Header \u2500\u2500\u2500 */}
+      {/* --- Header --- */}
       <header className="h-16 border-b flex items-center justify-between px-6 lg:px-12 sticky top-0 bg-background/80 backdrop-blur-md z-50">
         <div className="flex items-center gap-2 font-bold text-xl text-primary font-display">
           <img src="/logo.png" alt="Quiz Pro Quo" className="h-8 w-auto" />
@@ -51,7 +61,7 @@ export default function Home() {
             <Button variant="ghost" size="sm">Sign In</Button>
           </Link>
           <Link href="/demo">
-            <Button size="sm">Get Started \u2192</Button>
+            <Button size="sm">Get Started {CH_ARROW}</Button>
           </Link>
         </div>
 
@@ -77,18 +87,18 @@ export default function Home() {
             <div className="border-t my-3" />
             <Link href="/admin" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg text-base font-medium text-muted-foreground hover:bg-muted transition-colors">Sign In</Link>
             <Link href="/demo" onClick={() => setMobileMenuOpen(false)}>
-              <Button className="w-full mt-2">Get Started \u2192</Button>
+              <Button className="w-full mt-2">Get Started {CH_ARROW}</Button>
             </Link>
           </nav>
         </div>
       )}
 
       <main className="flex-1">
-        {/* \u2500\u2500\u2500 Hero \u2500\u2500\u2500 */}
+        {/* --- Hero --- */}
         <section className="py-20 lg:py-28 px-6 lg:px-12 overflow-hidden relative">
           <div className="absolute inset-0 bg-primary/5 -skew-y-3 transform origin-top-left scale-110 z-0" />
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
-            {/* Left \u2014 copy */}
+            {/* Left -- copy */}
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase">
                 <span className="relative flex h-2 w-2">
@@ -104,7 +114,7 @@ export default function Home() {
               </h1>
 
               <p className="text-xl text-muted-foreground max-w-lg leading-relaxed">
-                Build scored assessments, capture emails, and auto-deliver branded PDF reports \u2014 all from one platform.
+                Build scored assessments, capture emails, and auto-deliver branded PDF reports {CH_MDASH} all from one platform.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
@@ -129,18 +139,18 @@ export default function Home() {
               </div>
 
               <p className="text-sm text-muted-foreground">
-                Free to start \u00b7 No credit card required \u00b7 5-min setup
+                Free to start {CH_DOT} No credit card required {CH_DOT} 5-min setup
               </p>
             </div>
 
-            {/* Right \u2014 mockup (clean, no floating cards) */}
+            {/* Right -- mockup (clean, no floating cards) */}
             <div className="relative">
               <HeroProductMockup />
             </div>
           </div>
         </section>
 
-        {/* \u2500\u2500\u2500 Features Grid \u2500\u2500\u2500 */}
+        {/* --- Features Grid --- */}
         <section id="features" className="py-24 bg-background border-t">
           <div className="max-w-6xl mx-auto px-6 lg:px-12">
             <div className="text-center mx-auto mb-16 space-y-4">
@@ -148,11 +158,11 @@ export default function Home() {
                 Everything you need to <span className="text-primary">build, launch &amp; monetize</span>
               </h2>
               <p className="text-lg text-muted-foreground">
-                A complete quiz platform \u2014 not just a form builder.
+                A complete quiz platform {CH_MDASH} not just a form builder.
               </p>
             </div>
 
-            {/* 3\u00d73 grid */}
+            {/* 3x3 grid */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {FEATURES.map((f) => (
                 <Card
@@ -172,19 +182,19 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Coming Soon \u2014 single line */}
+            {/* Coming Soon -- single line */}
             <p className="mt-12 text-center text-sm text-muted-foreground">
               <span className="font-semibold uppercase tracking-wider">Coming Soon:</span>{" "}
-              {COMING_SOON.join(" \u00b7 ")}
+              {COMING_SOON.join(` ${CH_DOT} `)}
             </p>
           </div>
         </section>
 
-        {/* \u2500\u2500\u2500 Product Screenshot Section \u2500\u2500\u2500 */}
+        {/* --- Product Screenshot Section --- */}
         <section className="py-24 bg-muted/20 border-t">
           <div className="max-w-6xl mx-auto px-6 lg:px-12">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Left \u2014 screenshot mockup: Results page */}
+              {/* Left -- screenshot mockup: Results page */}
               <div className="rounded-2xl overflow-hidden shadow-2xl border bg-card">
                 {/* Browser chrome */}
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 border-b">
@@ -266,23 +276,23 @@ export default function Home() {
                   {/* CTA */}
                   <div className="flex gap-3 pt-2">
                     <div className="flex-1 text-center py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold">
-                      \ud83d\udcc4 Download PDF Report
+                      {String.fromCodePoint(128196)} Download PDF Report
                     </div>
                     <div className="flex-1 text-center py-2.5 bg-muted text-foreground rounded-lg text-sm font-medium border">
-                      Schedule a Call \u2192
+                      Schedule a Call {CH_ARROW}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Right \u2014 copy */}
+              {/* Right -- copy */}
               <div className="space-y-6">
                 <h2 className="text-4xl font-bold font-display leading-tight">
                   Deliver results that <span className="text-primary">convert</span>
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed">
                   Every quiz ends with a personalized results page. Show scores,
-                  category breakdowns, and outcome-specific recommendations \u2014 then
+                  category breakdowns, and outcome-specific recommendations {CH_MDASH} then
                   capture the lead with an email gate or PDF download.
                 </p>
                 <ul className="space-y-3">
@@ -296,7 +306,7 @@ export default function Home() {
                       key={item}
                       className="flex items-start gap-3 text-sm text-muted-foreground"
                     >
-                      <span className="text-primary mt-0.5 shrink-0">\u2713</span>
+                      <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -306,7 +316,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* \u2500\u2500\u2500 Use Cases \u2500\u2500\u2500 */}
+        {/* --- Use Cases --- */}
         <section id="use-cases" className="py-24 bg-gradient-to-br from-primary/[0.04] to-primary/[0.08] border-t">
           <div className="max-w-6xl mx-auto px-6 lg:px-12">
             <div className="text-center mx-auto mb-16 space-y-4">
@@ -317,44 +327,44 @@ export default function Home() {
                 Built for <span className="text-primary">any industry</span>
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                From lead qualification to compliance checks \u2014 our platform adapts to
+                From lead qualification to compliance checks {CH_MDASH} our platform adapts to
                 your specific needs.
               </p>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
               {[
                 {
-                  emoji: "\ud83c\udfaf",
+                  emoji: String.fromCodePoint(127919),
                   title: "Lead Qualification",
                   desc: "Score and segment prospects by fit before your team picks up the phone.",
                   color: "border-l-indigo-500",
                 },
                 {
-                  emoji: "\ud83d\udee1\ufe0f",
+                  emoji: String.fromCodePoint(128737),
                   title: "Compliance Checks",
                   desc: "Automate regulated checklists with outcome-based guidance and audit trails.",
                   color: "border-l-emerald-500",
                 },
                 {
-                  emoji: "\ud83d\udce6",
+                  emoji: String.fromCodePoint(128230),
                   title: "Product Recommenders",
                   desc: "Guide customers to the right product with scored branching logic.",
                   color: "border-l-amber-500",
                 },
                 {
-                  emoji: "\ud83d\ude80",
+                  emoji: String.fromCodePoint(128640),
                   title: "Onboarding Flows",
                   desc: "Personalize the new-user journey based on role, goals, and experience.",
                   color: "border-l-sky-500",
                 },
                 {
-                  emoji: "\u26a1",
+                  emoji: String.fromCodePoint(9889),
                   title: "Risk Assessments",
                   desc: "Quantify exposure with weighted scoring and tiered outcome actions.",
                   color: "border-l-rose-500",
                 },
                 {
-                  emoji: "\ud83d\udcb0",
+                  emoji: String.fromCodePoint(128176),
                   title: "ROI Calculators",
                   desc: "Show prospects the exact value they're leaving on the table.",
                   color: "border-l-violet-500",
@@ -375,7 +385,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* \u2500\u2500\u2500 CTA \u2500\u2500\u2500 */}
+        {/* --- CTA --- */}
         <section className="py-24 bg-primary text-primary-foreground">
           <div className="max-w-4xl mx-auto px-6 lg:px-12 text-center space-y-8">
             <h2 className="text-4xl font-bold font-display">
@@ -407,7 +417,7 @@ export default function Home() {
         </section>
       </main>
 
-      {/* \u2500\u2500\u2500 Footer \u2500\u2500\u2500 */}
+      {/* --- Footer --- */}
       <footer className="py-12 px-6 lg:px-12 border-t bg-muted/20">
         <div className="max-w-7xl mx-auto grid md:grid-cols-5 gap-8 mb-12">
           <div className="space-y-4 md:col-span-2">
