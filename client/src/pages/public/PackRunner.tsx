@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight, CheckCircle2, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Home, RotateCcw } from "lucide-react";
 
 const NOT_FOUND = "not_found" as const;
 const UNAVAILABLE = "unavailable" as const;
@@ -107,8 +107,7 @@ function decodeAnswersBase64Url(encoded: string): Answers | null {
   } catch { return null; }
 }
 
-// ─── Email Gate ──────────────────────────────────────────────────────────────
-
+// Email Gate
 function EmailGate({
   onSubmit,
   onSkip,
@@ -168,7 +167,8 @@ function EmailGate({
             {emailError ? <p className="text-xs text-destructive">{emailError}</p> : null}
           </div>
           <Button type="submit" className="w-full h-11 text-base">
-            Get My Results →
+            Get My Results
+            <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
           <p className="text-center text-xs text-muted-foreground">
             No spam. Your report is sent once, immediately.
@@ -181,7 +181,7 @@ function EmailGate({
             onClick={onSkip}
             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
           >
-            Skip — view results without report
+            Skip {String.fromCharCode(8212)} view results without report
           </button>
         </div>
       </div>
@@ -189,11 +189,10 @@ function EmailGate({
   );
 }
 
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
-
+// Progress Bar
 function ProgressBar({ value }: { value: number }) {
   return (
-    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
       <div
         className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
         style={{ width: `${Math.max(4, value)}%` }}
@@ -202,8 +201,7 @@ function ProgressBar({ value }: { value: number }) {
   );
 }
 
-// ─── Main PackRunner ──────────────────────────────────────────────────────────
-
+// Main PackRunner
 export default function PackRunner() {
   const [, params] = useRoute<{ workspaceSlug: string; packSlug: string }>(
     "/w/:workspaceSlug/:packSlug",
@@ -468,14 +466,13 @@ export default function PackRunner() {
     } catch { setPaymentReturnError("Payment confirmed, but we couldn't find your answers. Please run again."); }
   }, [definition, hasPaidSession, sessionIdParam, workspaceSlug, packSlug]);
 
-  // ── Loading / error states ────────────────────────────────────────────────
-
+  // Loading / error states
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="space-y-3 text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-muted-foreground">Loading quiz…</p>
+          <p className="text-sm text-muted-foreground">Loading quiz...</p>
         </div>
       </div>
     );
@@ -518,8 +515,7 @@ export default function PackRunner() {
     return <EmailGate onSubmit={handleEmailGateSubmit} onSkip={handleEmailGateSkip} />;
   }
 
-  // ── Result screen ──────────────────────────────────────────────────────────
-
+  // Result screen
   if (result) {
     const outcome = result.outcome;
     const status = getStatusFromOutcome(outcome, result.disqualified);
@@ -544,7 +540,7 @@ export default function PackRunner() {
 
           {submittedEmail ? (
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800 text-center">
-              ✉️ Your PDF report is on its way to <strong>{submittedEmail}</strong>
+              {String.fromCodePoint(9993)} Your PDF report is on its way to <strong>{submittedEmail}</strong>
             </div>
           ) : null}
 
@@ -605,7 +601,7 @@ export default function PackRunner() {
                   ? <Button asChild className="w-full"><a href={pdfUrl}>Download PDF</a></Button>
                   : <div className="space-y-2">
                       <Button className="w-full" onClick={handleUnlockPdf} disabled={unlockDisabled}>
-                        {checkoutLoading ? "Opening checkout…" : "Unlock PDF Report"}
+                        {checkoutLoading ? "Opening checkout..." : "Unlock PDF Report"}
                       </Button>
                       {!stripeConfigured ? <p className="text-xs text-muted-foreground text-center">Stripe not configured.</p> : null}
                     </div>
@@ -617,20 +613,25 @@ export default function PackRunner() {
             </div>
           </div>
 
-          <button
-            onClick={handleStartOver}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Take again
-          </button>
+          <div className="flex items-center justify-center gap-6">
+            <button
+              onClick={handleStartOver}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Take again
+            </button>
+            <Link href="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Home className="w-3.5 h-3.5" />
+              Back to home
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
-  // ── Quiz card screen ───────────────────────────────────────────────────────
-
+  // Quiz card screen
   if (!currentQuestion) {
     return (
       <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
@@ -654,29 +655,46 @@ export default function PackRunner() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
 
-      {/* Top bar */}
-      <div className="w-full px-4 pt-6 pb-4 max-w-xl mx-auto space-y-3">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{definition.name ?? data.pack.name}</span>
-          <span>{safeIndex + 1} / {visibleQuestions.length}</span>
+      {/* Top bar with home button */}
+      <div className="w-full px-4 pt-4 pb-3 max-w-2xl mx-auto space-y-3">
+        <div className="flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Home className="w-4 h-4" />
+            <span className="hidden sm:inline">Home</span>
+          </Link>
+          <span className="text-sm font-medium text-foreground">{definition.name ?? data.pack.name}</span>
+          <span className="text-sm text-muted-foreground tabular-nums">{safeIndex + 1} / {visibleQuestions.length}</span>
         </div>
         <ProgressBar value={progress} />
       </div>
 
-      {/* Question card */}
-      <div className="flex-1 flex items-start justify-center px-4 pt-8 pb-24">
+      {/* Question area */}
+      <div className="flex-1 flex items-start justify-center px-4 pt-6 pb-32">
         <div
           key={cardKey}
-          className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-3 duration-300"
+          className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-3 duration-300"
         >
-          <div className="space-y-6">
-            <h2 className="text-xl md:text-2xl font-semibold leading-snug">
+          {/* Question number badge */}
+          <div className="mb-6">
+            <div className="inline-flex items-center gap-2">
+              <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                {safeIndex + 1}
+              </span>
+              <span className="text-sm text-muted-foreground font-medium">
+                of {visibleQuestions.length}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            {/* Question text */}
+            <h2 className="text-2xl md:text-3xl font-bold leading-snug text-foreground">
               {currentQuestion.prompt}
             </h2>
 
             {/* Yes/No */}
             {(type === "boolean" || type === "yesno") ? (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {yesNoOptions.map((opt) => {
                   const selected = currentAnswer === opt.value;
                   return (
@@ -684,9 +702,9 @@ export default function PackRunner() {
                       key={opt.id}
                       type="button"
                       onClick={() => handleSelectAnswer(currentQuestion.id, opt.value)}
-                      className={`rounded-xl border-2 px-6 py-5 text-base font-semibold transition-all duration-150 ${
+                      className={`rounded-xl border-2 px-6 py-5 text-lg font-semibold transition-all duration-150 ${
                         selected
-                          ? "border-primary bg-primary/10 text-primary"
+                          ? "border-primary bg-primary/10 text-primary shadow-md"
                           : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
                       }`}
                     >
@@ -699,22 +717,32 @@ export default function PackRunner() {
 
             {/* Single choice / select */}
             {(type === "single" || type === "select") ? (
-              <div className="flex flex-col gap-2.5">
-                {options.map((option) => {
+              <div className="flex flex-col gap-3">
+                {options.map((option, idx) => {
                   const optValue = option.value ?? option.id;
                   const selected = currentAnswer === optValue;
+                  const letter = String.fromCharCode(65 + idx); // A, B, C, D...
                   return (
                     <button
                       key={option.id}
                       type="button"
                       onClick={() => handleSelectAnswer(currentQuestion.id, optValue)}
-                      className={`w-full text-left rounded-xl border-2 px-5 py-4 text-sm font-medium transition-all duration-150 ${
+                      className={`w-full text-left rounded-xl border-2 px-5 py-4 transition-all duration-150 flex items-center gap-4 ${
                         selected
-                          ? "border-primary bg-primary/10 text-primary"
+                          ? "border-primary bg-primary/10 shadow-md"
                           : "border-border bg-card hover:border-primary/50 hover:bg-muted/50"
                       }`}
                     >
-                      {option.label}
+                      <span className={`flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold shrink-0 ${
+                        selected
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      }`}>
+                        {letter}
+                      </span>
+                      <span className={`text-sm font-medium ${selected ? "text-primary" : "text-foreground"}`}>
+                        {option.label}
+                      </span>
                     </button>
                   );
                 })}
@@ -725,7 +753,7 @@ export default function PackRunner() {
             {isNumberInput ? (
               <Input
                 type="number"
-                className="text-base h-12"
+                className="text-lg h-14 text-center font-semibold"
                 value={typeof currentAnswer === "number" ? String(currentAnswer) : ""}
                 onChange={(e) => {
                   const raw = e.target.value;
@@ -740,7 +768,7 @@ export default function PackRunner() {
             {!isChoice && !isNumberInput ? (
               <Input
                 type="text"
-                className="text-base h-12"
+                className="text-lg h-14"
                 value={typeof currentAnswer === "string" ? currentAnswer : ""}
                 onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
                 placeholder="Type your answer"
@@ -751,15 +779,15 @@ export default function PackRunner() {
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur border-t">
-        <div className="max-w-xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+      {/* Bottom nav - styled as proper buttons */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <Button
-            variant="ghost"
-            size="sm"
+            variant="outline"
+            size="lg"
             onClick={handleBack}
             disabled={safeIndex === 0}
-            className="gap-1.5"
+            className="gap-2 px-6"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
@@ -768,20 +796,22 @@ export default function PackRunner() {
           {/* For choice questions that auto-advance, show a subtle indicator on last question */}
           {isChoice && isLastQuestion ? (
             <Button
+              size="lg"
               onClick={handleSeeResults}
               disabled={!hasAnswer}
-              className="gap-1.5"
+              className="gap-2 px-8 shadow-lg shadow-primary/20"
             >
               See Results
               <ArrowRight className="w-4 h-4" />
             </Button>
           ) : isChoice ? (
-            <span className="text-xs text-muted-foreground">Select an option to continue</span>
+            <span className="text-sm text-muted-foreground">Select an option to continue</span>
           ) : (
             <Button
+              size="lg"
               onClick={handleNext}
               disabled={!hasAnswer}
-              className="gap-1.5"
+              className="gap-2 px-8 shadow-lg shadow-primary/20"
             >
               {isLastQuestion ? "See Results" : "Next"}
               <ArrowRight className="w-4 h-4" />
